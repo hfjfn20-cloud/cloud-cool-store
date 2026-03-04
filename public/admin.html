@@ -138,95 +138,92 @@
             <div class="orders-list" id="ordersList"></div>
         </div>
 
-    </main>
+        <!-- ===== EDIT PRODUCT PAGE ===== -->
+        <div class="page" id="page-edit-product">
+            <div class="page-header">
+                <h1 class="page-title" id="editPageTitle">إضافة منتج جديد</h1>
+                <button class="btn btn-ghost" onclick="showPage('products')">← العودة للمنتجات</button>
+            </div>
+            
+            <div class="table-card" style="padding: 1.5rem; max-width: 800px; margin: 0 auto;">
+                <form id="productForm" enctype="multipart/form-data" onsubmit="submitProduct(event)">
+                    <input type="hidden" id="productId" />
 
-    <!-- ===== PRODUCT MODAL ===== -->
-    <div class="modal-overlay" id="productModalOverlay" onclick="closeProductModal()"></div>
-    <div class="modal" id="productModal">
-        <div class="modal-header">
-            <h3 id="productModalTitle">إضافة منتج جديد</h3>
-            <button class="modal-close" onclick="closeProductModal()">✕</button>
-        </div>
-        <div class="modal-body" style="overflow-y:auto; max-height:75vh;">
-            <form id="productForm" enctype="multipart/form-data" onsubmit="submitProduct(event)">
-                <input type="hidden" id="productId" />
-
-                <div class="form-group">
-                    <label>اسم المنتج *</label>
-                    <input type="text" id="pName" class="form-input" placeholder="مثال: تيشيرت ولادي أزرق" required />
-                </div>
-                <div class="form-group">
-                    <label>الوصف</label>
-                    <textarea id="pDesc" class="form-input form-textarea" placeholder="وصف المنتج (اختياري)"></textarea>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
-                        <label>السعر (دينار) *</label>
-                        <input type="number" id="pPrice" class="form-input" placeholder="مثال: 15000" min="0"
-                            required />
+                        <label>اسم المنتج *</label>
+                        <input type="text" id="pName" class="form-input" placeholder="مثال: تيشيرت ولادي أزرق" required />
                     </div>
                     <div class="form-group">
-                        <label>الكمية المتوفرة</label>
-                        <input type="number" id="pQty" class="form-input" placeholder="مثال: 10" min="0" value="10" />
+                        <label>الوصف</label>
+                        <textarea id="pDesc" class="form-input form-textarea" placeholder="وصف المنتج (اختياري)"></textarea>
                     </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>القسم الرئيسي</label>
-                        <select id="pCategory" class="form-input" onchange="updateSubcategoryOptions(this.value)">
-                            <option value="">-- اختر القسم --</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>القسم الفرعي</label>
-                        <select id="pSubcategory" class="form-input">
-                            <option value="">-- اختر الفئة --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>صورة المنتج</label>
-                    <div class="image-upload-wrap" onclick="document.getElementById('pImage').click()">
-                        <input type="file" id="pImage" accept="image/*" style="display:none"
-                            onchange="previewImage(this)" />
-                        <div class="image-upload-placeholder" id="imageUploadPlaceholder">
-                            <div class="upload-icon">📸</div>
-                            <div>اضغط لاختيار صورة</div>
-                            <div class="upload-hint">JPG, PNG, WEBP (حجم أقصى 5MB)</div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>السعر (دينار) *</label>
+                            <input type="number" id="pPrice" class="form-input" placeholder="مثال: 15000" min="0" required />
                         </div>
-                        <img id="imagePreview" class="image-preview" style="display:none" alt="معاينة" />
+                        <div class="form-group">
+                            <label>الكمية المتوفرة</label>
+                            <input type="number" id="pQty" class="form-input" placeholder="مثال: 10" min="0" value="10" />
+                        </div>
                     </div>
-                </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>القسم الرئيسي</label>
+                            <select id="pCategory" class="form-input" onchange="updateSubcategoryOptions(this.value)">
+                                <option value="">-- اختر القسم --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>القسم الفرعي</label>
+                            <select id="pSubcategory" class="form-input">
+                                <option value="">-- اختر الفئة --</option>
+                            </select>
+                        </div>
+                    </div>
 
-                <div class="flags-section">
-                    <div class="flag-check">
-                        <input type="checkbox" id="pIsNew" class="check-input" />
-                        <label for="pIsNew" class="check-label">✨ منتج جديد</label>
+                    <div class="form-group">
+                        <label>صورة المنتج</label>
+                        <div class="image-upload-wrap" onclick="document.getElementById('pImage').click()">
+                            <input type="file" id="pImage" accept="image/*" style="display:none" onchange="previewImage(this)" />
+                            <div class="image-upload-placeholder" id="imageUploadPlaceholder">
+                                <div class="upload-icon">📸</div>
+                                <div>اضغط لاختيار صورة</div>
+                                <div class="upload-hint">JPG, PNG, WEBP (حجم أقصى 5MB)</div>
+                            </div>
+                            <img id="imagePreview" class="image-preview" style="display:none" alt="معاينة" />
+                        </div>
                     </div>
-                    <div class="flag-check">
-                        <input type="checkbox" id="pIsOffer" class="check-input"
-                            onchange="toggleDiscountField(this.checked)" />
-                        <label for="pIsOffer" class="check-label">🏷️ عليه عرض</label>
-                    </div>
-                    <div class="flag-check">
-                        <input type="checkbox" id="pIsLow" class="check-input" />
-                        <label for="pIsLow" class="check-label">⚡ قد ينفد</label>
-                    </div>
-                </div>
 
-                <div class="form-group" id="discountField" style="display:none">
-                    <label>نسبة الخصم (%)</label>
-                    <input type="number" id="pDiscount" class="form-input" placeholder="مثال: 20" min="1" max="99" />
-                </div>
+                    <div class="flags-section">
+                        <div class="flag-check">
+                            <input type="checkbox" id="pIsNew" class="check-input" />
+                            <label for="pIsNew" class="check-label">✨ منتج جديد</label>
+                        </div>
+                        <div class="flag-check">
+                            <input type="checkbox" id="pIsOffer" class="check-input" onchange="toggleDiscountField(this.checked)" />
+                            <label for="pIsOffer" class="check-label">🏷️ عليه عرض</label>
+                        </div>
+                        <div class="flag-check">
+                            <input type="checkbox" id="pIsLow" class="check-input" />
+                            <label for="pIsLow" class="check-label">⚡ قد ينفد</label>
+                        </div>
+                    </div>
 
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-ghost" onclick="closeProductModal()">إلغاء</button>
-                    <button type="submit" class="btn btn-primary" id="productSubmitBtn">حفظ المنتج</button>
-                </div>
-            </form>
+                    <div class="form-group" id="discountField" style="display:none">
+                        <label>نسبة الخصم (%)</label>
+                        <input type="number" id="pDiscount" class="form-input" placeholder="مثال: 20" min="1" max="99" />
+                    </div>
+
+                    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn btn-ghost" onclick="showPage('products')">إلغاء</button>
+                        <button type="submit" class="btn btn-primary" id="productSubmitBtn">حفظ المنتج</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+
+    </main>
 
     <!-- TOAST -->
     <div class="toast" id="toast"></div>

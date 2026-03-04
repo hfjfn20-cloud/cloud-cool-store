@@ -159,11 +159,11 @@ function filterProductsTable(q) {
 
 function escStr(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
-// PRODUCT MODAL
+// PRODUCT EDIT PAGE
 function openProductModal(id = null) {
     currentProductId = id;
     resetProductForm();
-    document.getElementById('productModalTitle').textContent = id ? 'تعديل المنتج' : 'إضافة منتج جديد';
+    document.getElementById('editPageTitle').textContent = id ? 'تعديل المنتج' : 'إضافة منتج جديد';
     document.getElementById('productSubmitBtn').textContent = id ? 'حفظ التعديلات' : 'حفظ المنتج';
 
     if (id) {
@@ -189,14 +189,11 @@ function openProductModal(id = null) {
         }
     }
 
-    document.getElementById('productModalOverlay').classList.add('open');
-    document.getElementById('productModal').classList.add('open');
+    showPage('edit-product');
 }
 
 function closeProductModal() {
-    document.getElementById('productModalOverlay').classList.remove('open');
-    document.getElementById('productModal').classList.remove('open');
-    resetProductForm();
+    showPage('products');
 }
 
 function resetProductForm() {

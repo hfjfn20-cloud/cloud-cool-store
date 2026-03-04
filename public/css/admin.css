@@ -654,52 +654,7 @@ select.status-select {
 }
 
 /* ============ MODAL ============ */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 200;
-    display: none;
-    backdrop-filter: blur(5px);
-}
-
-.modal-overlay.open {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -60%);
-    z-index: 201;
-    background: white;
-    border-radius: var(--radius);
-    width: min(600px, 95vw);
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-    opacity: 0;
-    pointer-events: none;
-    transition: var(--transition);
-}
-
-.modal.open {
-    transform: translate(-50%, -50%);
-    opacity: 1;
-    pointer-events: all;
-}
+/* Page view management handled by .page and .active */
 
 .modal-header {
     display: flex;
@@ -930,14 +885,7 @@ select.status-select {
     .page-header {
         flex-direction: column;
         align-items: flex-start;
-    }
-
-    .modal {
-        width: 95vw !important;
-        right: 2.5vw !important;
-        left: auto !important;
-        transform: translateY(-50%) !important;
-        max-height: 95vh;
+        gap: 0.5rem;
     }
 }
 
