@@ -353,6 +353,23 @@ async function placeOrder() {
             body: JSON.stringify(orderData)
         });
 
+        // Generate WhatsApp Message
+        const managerPhone = '9647724650622';
+        let message = `*طلب جديد من متجر Cloud Cool* 👕🚀\n\n`;
+        message += `👤 *الزبون:* ${name}\n`;
+        message += `📞 *الهاتف:* ${phone}\n`;
+        message += `📍 *العنوان:* ${address || 'لم يحدد'}\n\n`;
+        message += `📦 *المنتجات:*\n`;
+
+        cart.forEach((item, idx) => {
+            message += `${idx + 1}. ${item.name} (عدد: ${item.qty}) - السعر: ${(item.price * item.qty).toLocaleString('ar-IQ')} د.ع\n`;
+        });
+
+        const grandTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+        message += `\n💰 *المجموع الكلي:* ${grandTotal.toLocaleString('ar-IQ')} دينار عراقي`;
+
+        const waUrl = `https://wa.me/${managerPhone}?text=${encodeURIComponent(message)}`;
+
         cart = [];
         saveCart();
         updateCartUI();
@@ -361,7 +378,13 @@ async function placeOrder() {
         document.getElementById('custAddress').value = '';
         document.getElementById('custPhone').value = '';
 
-        showToast('🎉 ' + result.message, false, 5000);
+        showToast('🎉 ' + result.message + '. سيتم توجيهك للواتساب...', false, 5000);
+
+        // Redirect to WhatsApp after a short delay
+        setTimeout(() => {
+            window.location.href = waUrl;
+        }, 1500);
+
     } catch (e) {
         showToast('❌ ' + e.message, true);
     } finally {
