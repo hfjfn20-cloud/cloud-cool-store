@@ -355,6 +355,7 @@ async function placeOrder() {
 
         // Generate WhatsApp Message
         const managerPhone = '9647724650622';
+        const baseUrl = window.location.origin;
         let message = `*طلب جديد من متجر Cloud Cool* 👕🚀\n\n`;
         message += `👤 *الزبون:* ${name}\n`;
         message += `📞 *الهاتف:* ${phone}\n`;
@@ -362,7 +363,8 @@ async function placeOrder() {
         message += `📦 *المنتجات:*\n`;
 
         cart.forEach((item, idx) => {
-            message += `${idx + 1}. ${item.name} (عدد: ${item.qty}) - السعر: ${(item.price * item.qty).toLocaleString('ar-IQ')} د.ع\n`;
+            const imgLink = item.image ? `\n🖼️ رابط الصورة: ${baseUrl}${item.image}` : '';
+            message += `${idx + 1}. ${item.name} (عدد: ${item.qty}) - السعر: ${(item.price * item.qty).toLocaleString('ar-IQ')} د.ع${imgLink}\n`;
         });
 
         const grandTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
