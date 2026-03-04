@@ -30,9 +30,32 @@ async function apiFetch(url, options = {}) {
 async function loadCategories() {
     try {
         allCategories = await apiFetch('/api/categories');
+        renderCategoryButtons();
     } catch (e) {
         console.error('Error loading categories:', e);
     }
+}
+
+function renderCategoryButtons() {
+    const row = document.getElementById('categoriesRow');
+    if (!row) return;
+
+    // Always keep "All" button
+    let html = `
+        <button class="cat-btn cat-btn-all active" id="btn-all" onclick="toggleCategory('all')">
+            🌟 الكل
+        </button>
+    `;
+
+    allCategories.forEach(cat => {
+        html += `
+            <button class="cat-btn" id="btn-${cat.name}" onclick="toggleCategory('${cat.name}')">
+                ${cat.label}
+            </button>
+        `;
+    });
+
+    row.innerHTML = html;
 }
 
 // ============ LOAD PRODUCT SECTIONS ============
@@ -140,19 +163,24 @@ function toggleCategory(cat) {
     activeSubcategory = null;
 
     document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(cat === 'boys' ? 'btnBoys' : cat === 'girls' ? 'btnGirls' : 'btnAll')?.classList.add('active');
+    document.getElementById('btn-' + cat)?.classList.add('active');
 
     const subRow = document.getElementById('subcategoriesRow');
+    if (!subRow) return;
+
     if (cat === 'all') {
         subRow.classList.remove('open');
         subRow.innerHTML = '';
     } else {
         const catData = allCategories.find(c => c.name === cat);
-        if (catData && catData.subcategories.length) {
+        if (catData && catData.subcategories && catData.subcategories.length) {
             subRow.innerHTML = catData.subcategories.map(sub =>
                 `<button class="sub-btn" onclick="filterSubcategory('${sub.name}', this)">${sub.label}</button>`
             ).join('');
             subRow.classList.add('open');
+        } else {
+            subRow.classList.remove('open');
+            subRow.innerHTML = '';
         }
     }
     loadAllSections();
