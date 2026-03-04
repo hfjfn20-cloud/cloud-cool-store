@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cloud Cool | لوحة التحكم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="/css/admin.css" />
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <span class="logo-icon">☁️</span>
+            <div>
+                <div class="logo-text">Cloud Cool</div>
+                <div class="logo-sub">لوحة التحكم</div>
+            </div>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+                <span class="nav-icon">📊</span> الرئيسية
+            </a>
+            <a class="nav-item" onclick="showPage('products')" id="nav-products">
+                <span class="nav-icon">👕</span> المنتجات
+            </a>
+            <a class="nav-item" onclick="showPage('orders')" id="nav-orders">
+                <span class="nav-icon">📦</span> الطلبات
+                <span class="badge-count" id="ordersNavBadge" style="display:none"></span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a class="nav-item" href="/" onclick="">
+                <span class="nav-icon">🏪</span> عرض المتجر
+            </a>
+            <a class="nav-item logout" onclick="logout()">
+                <span class="nav-icon">🚪</span> تسجيل الخروج
+            </a>
+        </div>
+    </aside>
+
+    <!-- MOBILE TOPBAR -->
+    <div class="mobile-topbar">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <span class="mobile-logo">☁️ Cloud Cool</span>
+        <span></span>
+    </div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- ===== DASHBOARD PAGE ===== -->
+        <div class="page active" id="page-dashboard">
+            <div class="page-header">
+                <h1 class="page-title">🏠 الرئيسية</h1>
+                <p class="page-subtitle" id="currentDate"></p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card stat-purple">
+                    <div class="stat-icon">👕</div>
+                    <div class="stat-info">
+                        <div class="stat-num" id="statProducts">-</div>
+                        <div class="stat-label">إجمالي المنتجات</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-blue">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-info">
+                        <div class="stat-num" id="statOrders">-</div>
+                        <div class="stat-label">إجمالي الطلبات</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-coral">
+                    <div class="stat-icon">🔔</div>
+                    <div class="stat-info">
+                        <div class="stat-num" id="statNew">-</div>
+                        <div class="stat-label">طلبات جديدة</div>
+                    </div>
+                </div>
+                <div class="stat-card stat-mint">
+                    <div class="stat-icon">📅</div>
+                    <div class="stat-info">
+                        <div class="stat-num" id="statToday">-</div>
+                        <div class="stat-label">طلبات اليوم</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== PRODUCTS PAGE ===== -->
+        <div class="page" id="page-products">
+            <div class="page-header">
+                <h1 class="page-title">👕 إدارة المنتجات</h1>
+                <button class="btn btn-primary" onclick="openProductModal()">+ إضافة منتج جديد</button>
+            </div>
+            <div class="table-card">
+                <div class="table-toolbar">
+                    <input type="text" class="table-search" id="productSearch" placeholder="🔍 ابحث عن منتج..."
+                        oninput="filterProductsTable(this.value)" />
+                </div>
+                <div class="table-wrap">
+                    <table class="data-table" id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>الصورة</th>
+                                <th>الاسم</th>
+                                <th>القسم</th>
+                                <th>السعر</th>
+                                <th>الحالة</th>
+                                <th>إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ORDERS PAGE ===== -->
+        <div class="page" id="page-orders">
+            <div class="page-header">
+                <h1 class="page-title">📦 إدارة الطلبات</h1>
+                <div class="filter-tabs" id="orderFilterTabs">
+                    <button class="filter-tab active" onclick="filterOrders('all', this)">الكل</button>
+                    <button class="filter-tab" onclick="filterOrders('جديد', this)">جديد</button>
+                    <button class="filter-tab" onclick="filterOrders('قيد المعالجة', this)">قيد المعالجة</button>
+                    <button class="filter-tab" onclick="filterOrders('تم الشحن', this)">تم الشحن</button>
+                    <button class="filter-tab" onclick="filterOrders('تم التسليم', this)">تم التسليم</button>
+                </div>
+            </div>
+            <div class="orders-list" id="ordersList"></div>
+        </div>
+
+    </main>
+
+    <!-- ===== PRODUCT MODAL ===== -->
+    <div class="modal-overlay" id="productModalOverlay" onclick="closeProductModal()"></div>
+    <div class="modal" id="productModal">
+        <div class="modal-header">
+            <h3 id="productModalTitle">إضافة منتج جديد</h3>
+            <button class="modal-close" onclick="closeProductModal()">✕</button>
+        </div>
+        <div class="modal-body" style="overflow-y:auto; max-height:75vh;">
+            <form id="productForm" enctype="multipart/form-data" onsubmit="submitProduct(event)">
+                <input type="hidden" id="productId" />
+
+                <div class="form-group">
+                    <label>اسم المنتج *</label>
+                    <input type="text" id="pName" class="form-input" placeholder="مثال: تيشيرت ولادي أزرق" required />
+                </div>
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <textarea id="pDesc" class="form-input form-textarea" placeholder="وصف المنتج (اختياري)"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>السعر (دينار) *</label>
+                        <input type="number" id="pPrice" class="form-input" placeholder="مثال: 15000" min="0"
+                            required />
+                    </div>
+                    <div class="form-group">
+                        <label>الكمية المتوفرة</label>
+                        <input type="number" id="pQty" class="form-input" placeholder="مثال: 10" min="0" value="10" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>القسم الرئيسي</label>
+                        <select id="pCategory" class="form-input" onchange="updateSubcategoryOptions(this.value)">
+                            <option value="">-- اختر القسم --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>القسم الفرعي</label>
+                        <select id="pSubcategory" class="form-input">
+                            <option value="">-- اختر الفئة --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة المنتج</label>
+                    <div class="image-upload-wrap" onclick="document.getElementById('pImage').click()">
+                        <input type="file" id="pImage" accept="image/*" style="display:none"
+                            onchange="previewImage(this)" />
+                        <div class="image-upload-placeholder" id="imageUploadPlaceholder">
+                            <div class="upload-icon">📸</div>
+                            <div>اضغط لاختيار صورة</div>
+                            <div class="upload-hint">JPG, PNG, WEBP (حجم أقصى 5MB)</div>
+                        </div>
+                        <img id="imagePreview" class="image-preview" style="display:none" alt="معاينة" />
+                    </div>
+                </div>
+
+                <div class="flags-section">
+                    <div class="flag-check">
+                        <input type="checkbox" id="pIsNew" class="check-input" />
+                        <label for="pIsNew" class="check-label">✨ منتج جديد</label>
+                    </div>
+                    <div class="flag-check">
+                        <input type="checkbox" id="pIsOffer" class="check-input"
+                            onchange="toggleDiscountField(this.checked)" />
+                        <label for="pIsOffer" class="check-label">🏷️ عليه عرض</label>
+                    </div>
+                    <div class="flag-check">
+                        <input type="checkbox" id="pIsLow" class="check-input" />
+                        <label for="pIsLow" class="check-label">⚡ قد ينفد</label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="discountField" style="display:none">
+                    <label>نسبة الخصم (%)</label>
+                    <input type="number" id="pDiscount" class="form-input" placeholder="مثال: 20" min="1" max="99" />
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeProductModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" id="productSubmitBtn">حفظ المنتج</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/js/admin.js"></script>
+</body>
+
+</html>

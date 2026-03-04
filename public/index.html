@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloud Cool | متجر ملابس الأطفال</title>
+  <meta name="description"
+    content="Cloud Cool - أفضل متجر لملابس الأطفال في العراق. ولادي وبناتي بأرقى التصاميم وأجمل الألوان." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-deco header-deco-left">☁️</div>
+    <div class="header-deco header-deco-right">☁️</div>
+    <div class="logo-wrapper">
+      <div class="logo-icon">👕</div>
+      <h1 id="storeLogo" class="store-name" title="اضغط مطولاً للدخول إلى لوحة التحكم">
+        Cloud Cool
+      </h1>
+      <p class="store-tagline">ملابس أطفال راقية وأنيقة ✨</p>
+    </div>
+
+    <!-- Cart Button -->
+    <button class="cart-btn" id="cartBtn" onclick="toggleCart()">
+      🛒 <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+  </header>
+
+  <!-- ========== SEARCH ========== -->
+  <section class="search-section">
+    <div class="search-wrapper">
+      <input type="text" id="searchInput" class="search-input"
+        placeholder="🔍  ابحث عن منتج... (تيشيرت، فستان، جينز، شورت...)" />
+      <button class="search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+    </div>
+  </section>
+
+  <!-- ========== CATEGORIES ========== -->
+  <section class="categories-section">
+    <div class="categories-row">
+      <button class="cat-btn" id="btnBoys" onclick="toggleCategory('boys')">
+        👦 ولادي
+      </button>
+      <button class="cat-btn cat-btn-girls" id="btnGirls" onclick="toggleCategory('girls')">
+        👧 بناتي
+      </button>
+      <button class="cat-btn cat-btn-all active" id="btnAll" onclick="toggleCategory('all')">
+        🌟 الكل
+      </button>
+    </div>
+    <!-- Subcategories row (dynamic) -->
+    <div class="subcategories-row" id="subcategoriesRow"></div>
+  </section>
+
+  <!-- ========== MAIN PRODUCT SECTIONS ========== -->
+  <main class="main-content" id="mainContent">
+    <!-- Search Results section (hidden by default) -->
+    <section class="products-section" id="searchSection" style="display:none;">
+      <div class="section-header">
+        <h2 class="section-title">🔎 نتائج البحث</h2>
+      </div>
+      <div class="products-grid" id="searchResults"></div>
+    </section>
+
+    <!-- New Products -->
+    <section class="products-section" id="newSection">
+      <div class="section-header new-header">
+        <span class="section-badge new-badge">جديد</span>
+        <h2 class="section-title">✨ ملابس جديدة</h2>
+      </div>
+      <div class="products-grid" id="newProducts"></div>
+    </section>
+
+    <!-- Offers -->
+    <section class="products-section" id="offersSection">
+      <div class="section-header offers-header">
+        <span class="section-badge offers-badge">عروض</span>
+        <h2 class="section-title">🏷️ عروض وتخفيضات</h2>
+      </div>
+      <div class="products-grid" id="offerProducts"></div>
+    </section>
+
+    <!-- Low Stock -->
+    <section class="products-section" id="lowStockSection">
+      <div class="section-header lowstock-header">
+        <span class="section-badge lowstock-badge">قد تنفد</span>
+        <h2 class="section-title">⚡ قد تنفد قريباً</h2>
+      </div>
+      <div class="products-grid" id="lowStockProducts"></div>
+    </section>
+
+    <!-- All Products -->
+    <section class="products-section" id="allSection" style="display:none;">
+      <div class="section-header all-header">
+        <span class="section-badge offers-badge" style="background:#8e44ad;color:white">تشكيلة</span>
+        <h2 class="section-title">🛍️ جميع المنتجات</h2>
+      </div>
+      <div class="products-grid" id="allProducts"></div>
+    </section>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-icon">🧺</div>
+      <p>لا توجد منتجات في هذا القسم حالياً</p>
+    </div>
+  </main>
+
+  <!-- ========== CART SIDEBAR ========== -->
+  <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+  <aside class="cart-sidebar" id="cartSidebar">
+    <div class="cart-header">
+      <h2>🛒 سلة المشتريات</h2>
+      <button class="cart-close" onclick="toggleCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-empty" id="cartEmpty">
+      <div style="font-size:3rem;">🛒</div>
+      <p>السلة فارغة</p>
+    </div>
+    <div class="cart-footer" id="cartFooter" style="display:none;">
+      <div class="cart-total">
+        <span>المجموع:</span>
+        <span class="cart-total-amount" id="cartTotal">0 دينار</span>
+      </div>
+      <!-- Checkout Form -->
+      <div class="checkout-form">
+        <h3>📦 بيانات التوصيل</h3>
+        <input type="text" id="custName" class="form-input" placeholder="الاسم الكامل *" required />
+        <input type="text" id="custAddress" class="form-input" placeholder="العنوان التفصيلي" />
+        <input type="tel" id="custPhone" class="form-input" placeholder="رقم الهاتف (واتساب) *" required />
+        <button class="checkout-btn" onclick="placeOrder()">
+          🛍️ اشتري الآن
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========== ADMIN LOGIN MODAL ========== -->
+  <div class="modal-overlay" id="adminModalOverlay" onclick="closeAdminModal()"></div>
+  <div class="modal" id="adminModal">
+    <div class="modal-header">
+      <h3>🔐 لوحة التحكم</h3>
+      <button onclick="closeAdminModal()" class="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-hint">أدخل كلمة المرور للدخول إلى لوحة التحكم</p>
+      <input type="password" id="adminPasswordInput" class="form-input" placeholder="كلمة المرور" />
+      <div class="modal-error" id="adminError" style="display:none;"></div>
+      <button class="checkout-btn" onclick="submitAdminLogin()">دخول</button>
+    </div>
+  </div>
+
+  <!-- ========== SUCCESS TOAST ========== -->
+  <div class="toast" id="toast"></div>
+  <!-- Long-press progress indicator -->
+  <div class="press-indicator" id="pressIndicator">
+    <div class="press-ring" id="pressRing"></div>
+    <span>استمر بالضغط...</span>
+  </div>
+
+  <footer class="footer">
+    <p>© 2024 Cloud Cool | جميع الحقوق محفوظة 💙</p>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+
+</html>
