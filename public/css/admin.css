@@ -687,6 +687,8 @@ select.status-select {
     background: white;
     border-radius: var(--radius);
     width: min(600px, 95vw);
+    max-height: 90vh;
+    overflow-y: auto;
     box-shadow: var(--shadow-lg);
     opacity: 0;
     pointer-events: none;
@@ -886,11 +888,11 @@ select.status-select {
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1024px) {
     .sidebar {
-        right: -100%;
+        right: -100% !important;
     }
 
     .sidebar.mobile-open {
-        right: 0;
+        right: 0 !important;
     }
 
     .sidebar-overlay.open {
@@ -898,7 +900,7 @@ select.status-select {
     }
 
     .main {
-        margin-right: 0;
+        margin-right: 0 !important;
         padding: 1rem;
         padding-top: 4.5rem;
     }

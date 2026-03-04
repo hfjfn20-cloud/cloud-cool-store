@@ -320,7 +320,14 @@ function renderOrders() {
         ).join('');
 
         const waMsg = encodeURIComponent(`مرحباً ${order.customer_name}، بخصوص طلبكم رقم #${order.id} من متجر Cloud Cool. إجمالي الطلب: ${order.total.toLocaleString('ar-IQ')} دينار.`);
-        const waPhone = order.customer_phone.replace(/\D/g, '');
+        const waPhoneRaw = order.customer_phone.replace(/\D/g, '');
+        let waPhone = waPhoneRaw;
+        // Handle Iraqi numbers starting with 07 or 7
+        if (waPhone.startsWith('07')) {
+            waPhone = '964' + waPhone.substring(1);
+        } else if (waPhone.startsWith('7') && waPhone.length === 10) {
+            waPhone = '964' + waPhone;
+        }
         const waLink = `https://wa.me/${waPhone}?text=${waMsg}`;
 
         const date = new Date(order.created_at).toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
