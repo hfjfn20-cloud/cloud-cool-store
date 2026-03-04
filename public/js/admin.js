@@ -46,6 +46,7 @@ function showPage(page) {
     if (page === 'products') loadProducts();
     if (page === 'orders') loadOrders();
     if (page === 'dashboard') loadStats();
+    if (page === 'settings') loadSettingsData();
     closeMobileSidebar();
 }
 
@@ -81,7 +82,7 @@ async function loadStats() {
 // ============ LOAD CATEGORIES ============
 async function loadCategories() {
     try {
-        allCategories = await fetch('/api/categories').then(r => r.json());
+        allCategories = await apiFetch('/api/categories');
         populateCategorySelect();
     } catch (e) { console.error(e); }
 }
@@ -378,6 +379,134 @@ async function updateOrderStatus(orderId, newStatus) {
         await loadStats();
         showToast('✅ تم تحديث حالة الطلب');
     } catch (e) { showToast('❌ خطأ في التحديث', true); }
+}
+
+// ============ SETTINGS (CATEGORIES) ============
+async function loadSettingsData() {
+    const container = document.getElementById('settingsContainer');
+    container.innerHTML = '<div class="loading-state">جاري التحميل...</div>';
+    try {
+        allCategories = await apiFetch('/api/categories');
+        renderSettings();
+    } catch (e) {
+        showToast('خطأ في تحميل الأقسام', true);
+    }
+}
+
+function renderSettings() {
+    const container = document.getElementById('settingsContainer');
+    if (!allCategories.length) {
+        container.innerHTML = '<div class="empty-state">لا توجد أقسام حالياً</div>';
+        return;
+    }
+
+    container.innerHTML = allCategories.map(cat => `
+        <div class="category-card">
+            <div class="category-header">
+                <span class="category-title">${cat.label}</span>
+                <div class="category-actions">
+                    <button class="btn-icon-sm" onclick="openCategoryModal(${cat.id}, '${cat.label}')" title="تعديل">✏️</button>
+                    <button class="btn-icon-sm" onclick="deleteCategory(${cat.id})" title="حذف">🗑️</button>
+                </div>
+            </div>
+            <div class="subcategory-list">
+                ${cat.subcategories.map(sub => `
+                    <div class="subcategory-item">
+                        <span>${sub.label}</span>
+                        <div class="subcategory-actions">
+                            <button class="btn-icon-sm" onclick="openSubCategoryModal(${cat.id}, ${sub.id}, '${sub.label}')">✏️</button>
+                            <button class="btn-icon-sm" onclick="deleteSubCategory(${sub.id})">🗑️</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            <button class="add-sub-btn" onclick="openSubCategoryModal(${cat.id})">➕ إضافة قسم فرعي</button>
+        </div>
+    `).join('');
+}
+
+// Category Modals
+function openCategoryModal(id = null, label = '') {
+    document.getElementById('catId').value = id || '';
+    document.getElementById('catLabel').value = label;
+    document.getElementById('categoryModalTitle').textContent = id ? 'تعديل القسم' : 'إضافة قسم جديد';
+    document.getElementById('categoryModalOverlay').classList.add('open');
+    document.getElementById('categoryModal').classList.add('open');
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModalOverlay').classList.remove('open');
+    document.getElementById('categoryModal').classList.remove('open');
+}
+
+async function saveCategory() {
+    const id = document.getElementById('catId').value;
+    const label = document.getElementById('catLabel').value.trim();
+    if (!label) return showToast('يرجى إدخال اسم القسم', true);
+
+    try {
+        await apiFetch('/api/categories', {
+            method: 'POST',
+            body: JSON.stringify({ id, label })
+        });
+        showToast('✅ تم الحفظ بنجاح');
+        closeCategoryModal();
+        loadCategories();
+        loadSettingsData();
+    } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteCategory(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا القسم وجميع أقسامه الفرعية؟')) return;
+    try {
+        await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
+        showToast('✅ تم الحذف بنجاح');
+        loadCategories();
+        loadSettingsData();
+    } catch (e) { showToast(e.message, true); }
+}
+
+// Subcategory Modals
+function openSubCategoryModal(parentId, id = null, label = '') {
+    document.getElementById('subCatParentId').value = parentId;
+    document.getElementById('subCatId').value = id || '';
+    document.getElementById('subCatLabel').value = label;
+    document.getElementById('subCategoryModalTitle').textContent = id ? 'تعديل القسم الفرعي' : 'إضافة قسم فرعي جديد';
+    document.getElementById('subCategoryModalOverlay').classList.add('open');
+    document.getElementById('subCategoryModal').classList.add('open');
+}
+
+function closeSubCategoryModal() {
+    document.getElementById('subCategoryModalOverlay').classList.remove('open');
+    document.getElementById('subCategoryModal').classList.remove('open');
+}
+
+async function saveSubCategory() {
+    const id = document.getElementById('subCatId').value;
+    const category_id = document.getElementById('subCatParentId').value;
+    const label = document.getElementById('subCatLabel').value.trim();
+    if (!label) return showToast('يرجى إدخال اسم القسم الفرعي', true);
+
+    try {
+        await apiFetch('/api/categories/subcategory', {
+            method: 'POST',
+            body: JSON.stringify({ id, category_id, label })
+        });
+        showToast('✅ تم الحفظ بنجاح');
+        closeSubCategoryModal();
+        loadCategories();
+        loadSettingsData();
+    } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteSubCategory(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا القسم الفرعي؟')) return;
+    try {
+        await apiFetch(`/api/categories/subcategory/${id}`, { method: 'DELETE' });
+        showToast('✅ تم الحذف بنجاح');
+        loadCategories();
+        loadSettingsData();
+    } catch (e) { showToast(e.message, true); }
 }
 
 // ============ TOAST ============

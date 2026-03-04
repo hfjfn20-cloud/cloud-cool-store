@@ -33,6 +33,9 @@
                 <span class="nav-icon">📦</span> الطلبات
                 <span class="badge-count" id="ordersNavBadge" style="display:none"></span>
             </a>
+            <a class="nav-item" onclick="showPage('settings')" id="nav-settings">
+                <span class="nav-icon">⚙️</span> الإعدادات
+            </a>
         </nav>
         <div class="sidebar-footer">
             <a class="nav-item" href="/" onclick="">
@@ -144,27 +147,31 @@
                 <h1 class="page-title" id="editPageTitle">إضافة منتج جديد</h1>
                 <button class="btn btn-ghost" onclick="showPage('products')">← العودة للمنتجات</button>
             </div>
-            
+
             <div class="table-card" style="padding: 1.5rem; max-width: 800px; margin: 0 auto;">
                 <form id="productForm" enctype="multipart/form-data" onsubmit="submitProduct(event)">
                     <input type="hidden" id="productId" />
 
                     <div class="form-group">
                         <label>اسم المنتج *</label>
-                        <input type="text" id="pName" class="form-input" placeholder="مثال: تيشيرت ولادي أزرق" required />
+                        <input type="text" id="pName" class="form-input" placeholder="مثال: تيشيرت ولادي أزرق"
+                            required />
                     </div>
                     <div class="form-group">
                         <label>الوصف</label>
-                        <textarea id="pDesc" class="form-input form-textarea" placeholder="وصف المنتج (اختياري)"></textarea>
+                        <textarea id="pDesc" class="form-input form-textarea"
+                            placeholder="وصف المنتج (اختياري)"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>السعر (دينار) *</label>
-                            <input type="number" id="pPrice" class="form-input" placeholder="مثال: 15000" min="0" required />
+                            <input type="number" id="pPrice" class="form-input" placeholder="مثال: 15000" min="0"
+                                required />
                         </div>
                         <div class="form-group">
                             <label>الكمية المتوفرة</label>
-                            <input type="number" id="pQty" class="form-input" placeholder="مثال: 10" min="0" value="10" />
+                            <input type="number" id="pQty" class="form-input" placeholder="مثال: 10" min="0"
+                                value="10" />
                         </div>
                     </div>
                     <div class="form-row">
@@ -185,7 +192,8 @@
                     <div class="form-group">
                         <label>صورة المنتج</label>
                         <div class="image-upload-wrap" onclick="document.getElementById('pImage').click()">
-                            <input type="file" id="pImage" accept="image/*" style="display:none" onchange="previewImage(this)" />
+                            <input type="file" id="pImage" accept="image/*" style="display:none"
+                                onchange="previewImage(this)" />
                             <div class="image-upload-placeholder" id="imageUploadPlaceholder">
                                 <div class="upload-icon">📸</div>
                                 <div>اضغط لاختيار صورة</div>
@@ -201,7 +209,8 @@
                             <label for="pIsNew" class="check-label">✨ منتج جديد</label>
                         </div>
                         <div class="flag-check">
-                            <input type="checkbox" id="pIsOffer" class="check-input" onchange="toggleDiscountField(this.checked)" />
+                            <input type="checkbox" id="pIsOffer" class="check-input"
+                                onchange="toggleDiscountField(this.checked)" />
                             <label for="pIsOffer" class="check-label">🏷️ عليه عرض</label>
                         </div>
                         <div class="flag-check">
@@ -212,7 +221,8 @@
 
                     <div class="form-group" id="discountField" style="display:none">
                         <label>نسبة الخصم (%)</label>
-                        <input type="number" id="pDiscount" class="form-input" placeholder="مثال: 20" min="1" max="99" />
+                        <input type="number" id="pDiscount" class="form-input" placeholder="مثال: 20" min="1"
+                            max="99" />
                     </div>
 
                     <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end;">
@@ -223,10 +233,64 @@
             </div>
         </div>
 
+        <!-- ===== SETTINGS PAGE ===== -->
+        <div class="page" id="page-settings">
+            <div class="page-header">
+                <h1 class="page-title">⚙️ إدارة الأقسام</h1>
+                <button class="btn btn-primary" onclick="openCategoryModal()">➕ إضافة قسم رئيسي</button>
+            </div>
+
+            <div id="settingsContainer" class="settings-grid">
+                <!-- Categories will be rendered here -->
+                <div class="loading-state">جاري التحميل...</div>
+            </div>
+        </div>
+
     </main>
 
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
+
+    <!-- CATEGORY MODAL -->
+    <div class="modal-overlay" id="categoryModalOverlay" onclick="closeCategoryModal()"></div>
+    <div class="modal" id="categoryModal">
+        <div class="modal-header">
+            <h2 id="categoryModalTitle">إضافة قسم جديد</h2>
+            <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="catId" />
+            <div class="form-group">
+                <label>اسم القسم *</label>
+                <input type="text" id="catLabel" class="form-input" placeholder="مثال: أحذية" required />
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeCategoryModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveCategory()">حفظ القسم</button>
+        </div>
+    </div>
+
+    <!-- SUBCATEGORY MODAL -->
+    <div class="modal-overlay" id="subCategoryModalOverlay" onclick="closeSubCategoryModal()"></div>
+    <div class="modal" id="subCategoryModal">
+        <div class="modal-header">
+            <h2 id="subCategoryModalTitle">إضافة قسم فرعي</h2>
+            <button class="modal-close" onclick="closeSubCategoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="subCatId" />
+            <input type="hidden" id="subCatParentId" />
+            <div class="form-group">
+                <label>اسم القسم الفرعي *</label>
+                <input type="text" id="subCatLabel" class="form-input" placeholder="مثال: رياضي" required />
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeSubCategoryModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveSubCategory()">حفظ القسم الفرعي</button>
+        </div>
+    </div>
 
     <script src="/js/admin.js"></script>
 </body>
