@@ -51,11 +51,11 @@ function showPage(page) {
 
 function toggleSidebar() {
     document.querySelector('.sidebar').classList.toggle('mobile-open');
-    document.getElementById('sidebarOverlay').classList.toggle('open');
+    document.querySelector('.sidebar-overlay').classList.toggle('open');
 }
 function closeMobileSidebar() {
     document.querySelector('.sidebar').classList.remove('mobile-open');
-    document.getElementById('sidebarOverlay').classList.remove('open');
+    document.querySelector('.sidebar-overlay').classList.remove('open');
 }
 
 function logout() {

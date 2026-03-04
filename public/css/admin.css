@@ -36,7 +36,6 @@ body {
     color: var(--text);
     direction: rtl;
     min-height: 100vh;
-    display: flex;
 }
 
 /* ============ SIDEBAR ============ */
@@ -843,11 +842,13 @@ select.status-select {
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1024px) {
     .sidebar {
-        right: -100% !important;
+        transform: translateX(100%) !important;
+        right: 0 !important;
+        left: auto !important;
     }
 
     .sidebar.mobile-open {
-        right: 0 !important;
+        transform: translateX(0) !important;
     }
 
     .sidebar-overlay.open {
