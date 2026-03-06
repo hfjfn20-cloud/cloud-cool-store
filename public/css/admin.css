@@ -671,7 +671,7 @@ select.status-select {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translate(-50%, -50%) scale(0.9) !important;
     width: 90%;
     max-width: 500px;
     background: white;
