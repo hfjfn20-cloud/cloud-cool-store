@@ -1125,3 +1125,8 @@ body::after {
 .detail-actions { margin-top: 2rem; }
 .detail-buy-btn { width: 100%; padding: 1.2rem; border-radius: 16px; border: none; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; font-size: 1.2rem; font-weight: 800; cursor: pointer; transition: all 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
 .detail-buy-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(0,0,0,0.2); filter: brightness(1.1); }
+
+/* Ensure product cards have a clickable cursor */
+.product-card { cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+.product-actions-card button { cursor: pointer; }
