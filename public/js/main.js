@@ -140,22 +140,81 @@ function renderProductCard(product) {
         : `<span class="product-price">${product.price.toLocaleString('ar-IQ')} د.ع</span>`;
 
     return `
-    <div class="product-card" data-id="${product.id}">
+    <div class="product-card" data-id="${product.id}" onclick="showProductDetails(${product.id})">
       <div class="product-img-wrap">${imgTag}</div>
       <div class="product-flags">${flags}</div>
       <div class="product-info">
         <div class="product-name">${product.name}</div>
         <div class="product-category">${product.category_label || ''} ${product.subcategory_label ? '· ' + product.subcategory_label : ''}</div>
         <div class="product-price-wrap">${priceHtml}</div>
-        <button class="add-cart-btn" onclick="addToCart(${product.id}, '${escStr(product.name)}', ${discountedPrice}, '${product.image || ''}')">
-          🛒 أضف إلى السلة
-        </button>
+        <div class="product-actions-card" onclick="event.stopPropagation()">
+          <button class="add-cart-btn" onclick="addToCart(${product.id}, '${escStr(product.name)}', ${discountedPrice}, '${product.image || ''}')">
+            🛒 أضف إلى السلة
+          </button>
+        </div>
       </div>
     </div>
   `;
 }
 
 function escStr(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
+
+// ============ PRODUCT DETAILS VIEW ============
+let currentProductsList = []; // To store loaded products for quick access
+
+async function showProductDetails(id) {
+    // Find product in already loaded lists or fetch if needed
+    // For simplicity, we can use a global search across sections or just fetch by ID
+    // Let's try to fetch fresh data to ensure we have the description
+    try {
+        const product = await apiFetch(`/api/products/${id}`);
+        if (!product) return;
+
+        const hasDiscount = product.is_offer && product.discount_percent > 0;
+        const discountedPrice = hasDiscount
+            ? Math.round(product.price * (1 - product.discount_percent / 100))
+            : product.price;
+
+        document.getElementById('detailImg').src = product.image || '';
+        document.getElementById('detailImg').style.display = product.image ? 'block' : 'none';
+
+        const badge = document.getElementById('detailBadge');
+        if (product.is_new) { badge.textContent = '✨ جديد'; badge.style.display = 'block'; }
+        else if (product.is_offer) { badge.textContent = '🏷️ عرض'; badge.style.display = 'block'; }
+        else if (product.is_low_stock) { badge.textContent = '⚡ قد ينفد'; badge.style.display = 'block'; }
+        else { badge.style.display = 'none'; }
+
+        document.getElementById('detailName').textContent = product.name;
+        document.getElementById('detailCategory').textContent = `${product.category_label || ''} ${product.subcategory_label ? '· ' + product.subcategory_label : ''}`;
+        document.getElementById('detailDesc').textContent = product.description || 'لا يوجد وصف متاح لهذا المنتج.';
+
+        if (hasDiscount) {
+            document.getElementById('detailPriceOriginal').textContent = product.price.toLocaleString('ar-IQ') + ' د.ع';
+            document.getElementById('detailPriceOriginal').style.display = 'block';
+        } else {
+            document.getElementById('detailPriceOriginal').style.display = 'none';
+        }
+        document.getElementById('detailPriceFinal').textContent = discountedPrice.toLocaleString('ar-IQ') + ' د.ع';
+
+        document.getElementById('detailBuyBtn').onclick = () => {
+            addToCart(product.id, product.name, discountedPrice, product.image);
+            closeProductDetails();
+            toggleCart(); // Open cart automatically
+        };
+
+        document.getElementById('productDetailOverlay').classList.add('open');
+        document.getElementById('productDetailView').classList.add('open');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    } catch (e) {
+        showToast('خطأ في تحميل تفاصيل المنتج', true);
+    }
+}
+
+function closeProductDetails() {
+    document.getElementById('productDetailOverlay').classList.remove('open');
+    document.getElementById('productDetailView').classList.remove('open');
+    document.body.style.overflow = '';
+}
 
 // ============ CATEGORY TOGGLE ============
 function toggleCategory(cat) {

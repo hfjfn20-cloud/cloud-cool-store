@@ -137,6 +137,30 @@
     </div>
   </aside>
 
+  <!-- ========== PRODUCT DETAIL VIEW ========== -->
+  <div class="product-detail-overlay" id="productDetailOverlay" onclick="closeProductDetails()"></div>
+  <div class="product-detail-view" id="productDetailView">
+    <button class="detail-close" onclick="closeProductDetails()">✕</button>
+    <div class="detail-content">
+      <div class="detail-img-side">
+        <img id="detailImg" src="" alt="" />
+      </div>
+      <div class="detail-info-side">
+        <div id="detailBadge" class="detail-badge"></div>
+        <h2 id="detailName" class="detail-name"></h2>
+        <div id="detailCategory" class="detail-category"></div>
+        <p id="detailDesc" class="detail-desc"></p>
+        <div class="detail-price-box">
+          <div id="detailPriceOriginal" class="detail-price-old"></div>
+          <div id="detailPriceFinal" class="detail-price-new"></div>
+        </div>
+        <div class="detail-actions">
+          <button id="detailBuyBtn" class="detail-buy-btn" onclick="">🛍️ اشتري الآن</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ========== ADMIN LOGIN MODAL ========== -->
   <div class="modal-overlay" id="adminModalOverlay" onclick="closeAdminModal()"></div>
   <div class="modal" id="adminModal">
