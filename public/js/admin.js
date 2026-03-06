@@ -414,8 +414,8 @@ function renderSettings() {
             <div class="category-header">
                 <span class="category-title">${cat.label}</span>
                 <div class="category-actions">
-                    <button class="btn-icon-sm" onclick="openCategoryModal(${cat.id}, '${cat.label}')" title="تعديل">✏️</button>
-                    <button class="btn-icon-sm" onclick="deleteCategory(${cat.id})" title="حذف">🗑️</button>
+                    <button class="btn-icon-sm" onclick="openCategoryModal('${cat.id}', '${cat.label}')" title="تعديل">✏️</button>
+                    <button class="btn-icon-sm" onclick="deleteCategory('${cat.id}')" title="حذف">🗑️</button>
                 </div>
             </div>
             <div class="subcategory-list">
@@ -423,13 +423,13 @@ function renderSettings() {
                     <div class="subcategory-item">
                         <span>${sub.label}</span>
                         <div class="subcategory-actions">
-                            <button class="btn-icon-sm" onclick="openSubCategoryModal(${cat.id}, ${sub.id}, '${sub.label}')">✏️</button>
-                            <button class="btn-icon-sm" onclick="deleteSubCategory(${sub.id})">🗑️</button>
+                            <button class="btn-icon-sm" onclick="openSubCategoryModal('${cat.id}', '${sub.id}', '${sub.label}')">✏️</button>
+                            <button class="btn-icon-sm" onclick="deleteSubCategory('${sub.id}')">🗑️</button>
                         </div>
                     </div>
                 `).join('')}
             </div>
-            <button class="add-sub-btn" onclick="openSubCategoryModal(${cat.id})">➕ إضافة قسم فرعي</button>
+            <button class="add-sub-btn" onclick="openSubCategoryModal('${cat.id}')">➕ إضافة قسم فرعي</button>
         </div>
     `).join('');
 }
