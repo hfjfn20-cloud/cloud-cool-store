@@ -26,7 +26,16 @@ function setCurrentDate() {
 
 // ============ API HELPERS ============
 async function apiFetch(url, options = {}) {
-    const headers = { 'Authorization': `Bearer ${adminToken}`, ...options.headers };
+    const headers = {
+        'Authorization': `Bearer ${adminToken}`,
+        ...options.headers
+    };
+
+    // Add Content-Type if there is a body and it's not a FormData object
+    if (options.body && !(options.body instanceof FormData)) {
+        headers['Content-Type'] = 'application/json';
+    }
+
     const res = await fetch(API + url, { ...options, headers });
     if (res.status === 401) { logout(); return; }
     if (!res.ok) {
