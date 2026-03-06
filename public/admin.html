@@ -292,6 +292,22 @@
         </div>
     </div>
 
+    <!-- CONFIRM DELETE MODAL -->
+    <div class="modal-overlay" id="confirmOverlay"></div>
+    <div class="modal" id="confirmModal">
+        <div class="modal-header" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+            <h2>⚠️ تأكيد الحذف</h2>
+            <button class="modal-close" onclick="closeConfirmModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage" style="font-size:1.1rem; text-align:center; padding: 1rem 0;">هل أنت متأكد؟</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeConfirmModal()">إلغاء</button>
+            <button class="btn btn-danger" id="confirmActionBtn" onclick="">حذف</button>
+        </div>
+    </div>
+
     <script src="/js/admin.js"></script>
 </body>
 

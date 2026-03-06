@@ -281,13 +281,28 @@ async function submitProduct(e) {
 }
 
 async function deleteProduct(id, name) {
-    if (!confirm(`هل أنت متأكد من حذف "${name}"؟`)) return;
-    try {
-        await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
-        showToast('✅ تم حذف المنتج');
-        await loadProducts();
-        await loadStats();
-    } catch (e) { showToast('❌ خطأ في الحذف', true); }
+    showConfirmModal(`هل أنت متأكد من حذف "${name}"?`, async () => {
+        try {
+            await apiFetch(`/api/products/${id}`, { method: 'DELETE' });
+            showToast('✅ تم حذف المنتج');
+            await loadProducts();
+            await loadStats();
+        } catch (e) { showToast('❌ خطأ في الحذف', true); }
+    });
+}
+
+// ===== CONFIRM MODAL HELPERS =====
+function showConfirmModal(message, onConfirm) {
+    document.getElementById('confirmMessage').textContent = message;
+    document.getElementById('confirmOverlay').classList.add('open');
+    document.getElementById('confirmModal').classList.add('open');
+    const btn = document.getElementById('confirmActionBtn');
+    btn.onclick = () => { closeConfirmModal(); onConfirm(); };
+}
+
+function closeConfirmModal() {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    document.getElementById('confirmModal').classList.remove('open');
 }
 
 // ============ ORDERS ============
@@ -466,13 +481,14 @@ async function saveCategory() {
 }
 
 async function deleteCategory(id) {
-    if (!confirm('هل أنت متأكد من حذف هذا القسم وجميع أقسامه الفرعية؟')) return;
-    try {
-        await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
-        showToast('✅ تم الحذف بنجاح');
-        loadCategories();
-        loadSettingsData();
-    } catch (e) { showToast(e.message, true); }
+    showConfirmModal('هل أنت متأكد من حذف هذا القسم وجميع أقسامه الفرعية؟', async () => {
+        try {
+            await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
+            showToast('✅ تم الحذف بنجاح');
+            loadCategories();
+            loadSettingsData();
+        } catch (e) { showToast(e.message, true); }
+    });
 }
 
 // Subcategory Modals
@@ -509,13 +525,14 @@ async function saveSubCategory() {
 }
 
 async function deleteSubCategory(id) {
-    if (!confirm('هل أنت متأكد من حذف هذا القسم الفرعي؟')) return;
-    try {
-        await apiFetch(`/api/categories/subcategory/${id}`, { method: 'DELETE' });
-        showToast('✅ تم الحذف بنجاح');
-        loadCategories();
-        loadSettingsData();
-    } catch (e) { showToast(e.message, true); }
+    showConfirmModal('هل أنت متأكد من حذف هذا القسم الفرعي؟', async () => {
+        try {
+            await apiFetch(`/api/categories/subcategory/${id}`, { method: 'DELETE' });
+            showToast('✅ تم الحذف بنجاح');
+            loadCategories();
+            loadSettingsData();
+        } catch (e) { showToast(e.message, true); }
+    });
 }
 
 // ============ TOAST ============
