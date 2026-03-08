@@ -62,10 +62,10 @@ router.get('/:id', (req, res) => {
 
 // POST /api/products (admin only)
 router.post('/', verifyAdmin, upload.single('image'), (req, res) => {
-    const { name, description, price, category_id, subcategory_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty } = req.body;
+    const { name, description, price, category_id, subcategory_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
     if (!name || !price) return res.status(400).json({ error: 'الاسم والسعر مطلوبان' });
 
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
+    const image = req.file ? `/uploads/${req.file.filename}` : (image_url || null);
     const id = nextId('products');
     const product = {
         id,
@@ -92,8 +92,8 @@ router.put('/:id', verifyAdmin, upload.single('image'), (req, res) => {
     const existing = db.get('products').find({ id }).value();
     if (!existing) return res.status(404).json({ error: 'المنتج غير موجود' });
 
-    const { name, description, price, category_id, subcategory_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : existing.image;
+    const { name, description, price, category_id, subcategory_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
+    const image = req.file ? `/uploads/${req.file.filename}` : (image_url || existing.image);
 
     const updated = {
         ...existing,

@@ -196,6 +196,9 @@ function openProductModal(id = null) {
             document.getElementById('imagePreview').src = p.image;
             document.getElementById('imagePreview').style.display = 'block';
             document.getElementById('imageUploadPlaceholder').style.display = 'none';
+            if (p.image.startsWith('http')) {
+                document.getElementById('pImageUrl').value = p.image;
+            }
         }
     }
 
@@ -209,6 +212,7 @@ function closeProductModal() {
 function resetProductForm() {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
+    document.getElementById('pImageUrl').value = '';
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('imageUploadPlaceholder').style.display = 'flex';
     document.getElementById('discountField').style.display = 'none';
@@ -227,8 +231,20 @@ function previewImage(input) {
             document.getElementById('imagePreview').src = e.target.result;
             document.getElementById('imagePreview').style.display = 'block';
             document.getElementById('imageUploadPlaceholder').style.display = 'none';
+            document.getElementById('pImageUrl').value = ''; // إفراغ خانة الرابط عند اختيار ملف
         };
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function previewImageUrl(url) {
+    if (url && url.startsWith('http')) {
+        document.getElementById('imagePreview').src = url;
+        document.getElementById('imagePreview').style.display = 'block';
+        document.getElementById('imageUploadPlaceholder').style.display = 'none';
+    } else if (!document.getElementById('pImage').files.length) {
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('imageUploadPlaceholder').style.display = 'flex';
     }
 }
 
@@ -252,7 +268,13 @@ async function submitProduct(e) {
         formData.append('is_low_stock', document.getElementById('pIsLow').checked ? '1' : '0');
 
         const imageFile = document.getElementById('pImage').files[0];
-        if (imageFile) formData.append('image', imageFile);
+        const imageUrl = document.getElementById('pImageUrl').value.trim();
+
+        if (imageFile) {
+            formData.append('image', imageFile);
+        } else if (imageUrl) {
+            formData.append('image_url', imageUrl);
+        }
 
         const url = currentProductId ? `/api/products/${currentProductId}` : '/api/products';
         const method = currentProductId ? 'PUT' : 'POST';

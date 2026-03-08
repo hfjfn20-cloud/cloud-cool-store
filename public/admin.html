@@ -190,17 +190,23 @@
                     </div>
 
                     <div class="form-group">
-                        <label>صورة المنتج</label>
+                        <label>صورة المنتج (عبر رفع ملف)</label>
                         <div class="image-upload-wrap" onclick="document.getElementById('pImage').click()">
                             <input type="file" id="pImage" accept="image/*" style="display:none"
                                 onchange="previewImage(this)" />
                             <div class="image-upload-placeholder" id="imageUploadPlaceholder">
                                 <div class="upload-icon">📸</div>
-                                <div>اضغط لاختيار صورة</div>
+                                <div>اضغط لاختيار صورة من جهازك</div>
                                 <div class="upload-hint">JPG, PNG, WEBP (حجم أقصى 5MB)</div>
                             </div>
                             <img id="imagePreview" class="image-preview" style="display:none" alt="معاينة" />
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>أو عبر رابط (رابط من انستغرام، تيك توك، الخ)</label>
+                        <input type="url" id="pImageUrl" class="form-input" placeholder="https://..."
+                            oninput="previewImageUrl(this.value)" />
                     </div>
 
                     <div class="flags-section">
