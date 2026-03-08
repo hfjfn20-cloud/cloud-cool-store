@@ -66,8 +66,8 @@ async function loadAllSections() {
         const allProductsList = await apiFetch('/api/products?' + new URLSearchParams(params));
 
         const newProds = allProductsList.filter(p => p.is_new);
-        const offerProds = allProductsList.filter(p => !p.is_new && p.is_offer);
-        const lowProds = allProductsList.filter(p => !p.is_new && !p.is_offer && p.is_low_stock);
+        const offerProds = allProductsList.filter(p => p.is_offer);
+        const lowProds = allProductsList.filter(p => p.is_low_stock);
         const regularProds = allProductsList.filter(p => !p.is_new && !p.is_offer && !p.is_low_stock);
 
         renderSection('newProducts', newProds);
