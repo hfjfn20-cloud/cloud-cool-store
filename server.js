@@ -48,6 +48,23 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Self-ping to keep Render free tier alive (prevents 15-min sleep)
+function startKeepAlive() {
+    const siteUrl = process.env.RENDER_EXTERNAL_URL || process.env.SITE_URL;
+    if (!siteUrl) return; // Only runs in production (Render sets RENDER_EXTERNAL_URL)
+
+    const pingUrl = `${siteUrl}/api/status`;
+    console.log(`🔁 Keep-alive started — pinging ${pingUrl} every 25s`);
+
+    setInterval(async () => {
+        try {
+            await fetch(pingUrl);
+        } catch (e) {
+            // Silently ignore ping errors
+        }
+    }, 25 * 1000); // every 25 seconds
+}
+
 // Start Server
 async function startServer() {
     await initializeDatabase();
@@ -58,6 +75,9 @@ async function startServer() {
         console.log(`📊 Database: ${isMongo() ? '🟢 MongoDB Atlas (Cloud)' : '🟡 Local db.json (Add MONGODB_URI to .env)'}`);
         console.log(`☁️ Images:   ${isImgbbConfigured() ? '🟢 ImgBB Cloud CDN (Active)' : '🟡 Local /uploads (Add IMGBB_API_KEY to .env)'}`);
         console.log(`======================================================\n`);
+
+        // Start keep-alive after server is ready
+        startKeepAlive();
     });
 }
 
