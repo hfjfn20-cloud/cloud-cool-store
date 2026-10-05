@@ -29,6 +29,9 @@ function isMongo() {
 
 async function initializeDatabase() {
     const mongoUri = process.env.MONGODB_URI;
+    // DEBUG: Log env variable status (will remove after fix)
+    console.log('🔍 DEBUG — MONGODB_URI present:', !!mongoUri, '| length:', mongoUri ? mongoUri.length : 0);
+    console.log('🔍 DEBUG — NODE_ENV:', process.env.NODE_ENV);
 
     if (mongoUri) {
         try {
