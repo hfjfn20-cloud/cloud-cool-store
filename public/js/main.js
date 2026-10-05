@@ -450,7 +450,8 @@ async function placeOrder() {
         message += `📦 *المنتجات:*\n`;
 
         cart.forEach((item, idx) => {
-            const imgLink = item.image ? `\n🖼️ رابط الصورة: ${baseUrl}${item.image}` : '';
+            const imgUrl = item.image ? (item.image.startsWith('http') ? item.image : `${baseUrl}${item.image}`) : '';
+            const imgLink = imgUrl ? `\n🖼️ رابط الصورة: ${imgUrl}` : '';
             message += `${idx + 1}. ${item.name} (عدد: ${item.qty}) - السعر: ${(item.price * item.qty).toLocaleString('ar-IQ')} د.ع${imgLink}\n`;
         });
 
