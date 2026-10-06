@@ -1294,3 +1294,71 @@ body::after {
 .product-actions-card button {
   cursor: pointer;
 }
+
+/* ============ CAROUSEL (Horizontal Swipe) ============ */
+.carousel-wrapper {
+  overflow: hidden;
+  margin: 0 -16px;
+  padding: 0 16px;
+  position: relative;
+}
+
+.carousel-track {
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding: 8px 4px 16px 4px;
+  cursor: grab;
+  user-select: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-track.dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+}
+
+/* Cards inside carousel get fixed width */
+.carousel-track .product-card {
+  flex: 0 0 calc(50% - 7px);
+  min-width: calc(50% - 7px);
+  max-width: calc(50% - 7px);
+  scroll-snap-align: start;
+}
+
+/* On wider screens show 2.5 cards */
+@media (min-width: 480px) {
+  .carousel-track .product-card {
+    flex: 0 0 calc(44% - 7px);
+    min-width: calc(44% - 7px);
+    max-width: calc(44% - 7px);
+  }
+}
+
+@media (min-width: 768px) {
+  .carousel-track .product-card {
+    flex: 0 0 calc(30% - 7px);
+    min-width: calc(30% - 7px);
+    max-width: calc(30% - 7px);
+  }
+}
+
+/* Fade hint on the right edge to indicate more content */
+.carousel-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 100%;
+  background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
+}
