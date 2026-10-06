@@ -802,7 +802,11 @@ body::after {
 
 .cart-footer {
   padding: 1rem 1.5rem;
-  border-top: 2px solid rgba(155, 89, 182, 0.1);
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  border-top: 2px solid rgba(155, 89, 182, 0.15);
+  background: white;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 20px rgba(155, 89, 182, 0.12);
 }
 
 .cart-total {
@@ -849,27 +853,33 @@ body::after {
 
 .checkout-btn {
   width: 100%;
-  padding: 0.9rem;
+  padding: 1rem;
   background: linear-gradient(135deg, #9b59b6, #3498db);
   color: white;
   border: none;
   border-radius: var(--radius-sm);
   font-family: 'Tajawal', sans-serif;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   cursor: pointer;
   transition: var(--transition);
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  min-height: 56px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(155, 89, 182, 0.35);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .checkout-btn:hover {
   background: linear-gradient(135deg, #7d3c98, #2980b9);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
+  box-shadow: 0 8px 25px rgba(155, 89, 182, 0.5);
 }
 
 .checkout-btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(155, 89, 182, 0.3);
 }
 
 .checkout-btn:disabled {
