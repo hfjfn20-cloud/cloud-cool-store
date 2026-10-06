@@ -15,6 +15,7 @@ const Category = require('./models/Category');
 const Subcategory = require('./models/Subcategory');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
+const Banner = require('./models/Banner');
 const { Counter, getNextSequence } = require('./models/Counter');
 
 // Lowdb fallback
@@ -67,7 +68,8 @@ async function initializeDatabase() {
         products: [],
         orders: [],
         order_items: [],
-        _counters: { products: 0, orders: 0, order_items: 0 }
+        banners: [],
+        _counters: { products: 0, orders: 0, order_items: 0, banners: 0 }
     }).write();
 
     if (!db.get('admins').find({ username: 'admin' }).value()) {
@@ -118,6 +120,7 @@ module.exports = {
         Subcategory,
         Product,
         Order,
+        Banner,
         Counter
     }
 };
