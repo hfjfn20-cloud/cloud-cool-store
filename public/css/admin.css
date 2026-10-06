@@ -948,3 +948,62 @@ select.status-select {
 .btn-icon-sm:hover { background: #f0f0f0; border-color: #bbb; }
 .add-sub-btn { margin-top: 1rem; width: 100%; padding: 0.65rem; border: 2px dashed #ddd; background: #fafafa; color: #666; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .add-sub-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+/* ============ BANNERS GRID ============ */
+.banners-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.2rem;
+  padding: 1.5rem;
+}
+
+.banner-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  border: 2px solid rgba(155,89,182,0.08);
+  transition: all 0.3s;
+}
+.banner-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(155,89,182,0.15); }
+.banner-inactive { opacity: 0.6; border-style: dashed; }
+
+.banner-preview {
+  height: 140px;
+  position: relative;
+  background: linear-gradient(135deg, #9b59b6, #3498db);
+  overflow: hidden;
+}
+
+.banner-no-img {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,0.7); font-size: 1.1rem;
+}
+
+.banner-overlay-text {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 0.8rem 1rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+  color: white; font-size: 0.95rem;
+}
+
+.banner-info {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.banner-link-badge {
+  font-size: 0.8rem; background: rgba(155,89,182,0.1);
+  color: #7d3c98; padding: 0.2rem 0.6rem; border-radius: 10px; font-weight: 600;
+}
+
+.banner-status { font-size: 0.8rem; font-weight: 700; }
+.status-active { color: #27ae60; }
+.status-inactive { color: #e74c3c; }
+
+.banner-actions {
+  display: flex; gap: 0.5rem; padding: 0.6rem 1rem;
+}
+.banner-actions .btn-sm { flex: 1; padding: 0.35rem 0.5rem; font-size: 0.85rem; }

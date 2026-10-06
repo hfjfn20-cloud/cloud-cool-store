@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cloud Cool | لوحة التحكم</title>
+    <title>بيبي مون | لوحة التحكم</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap"
         rel="stylesheet" />
@@ -18,7 +18,7 @@
         <div class="sidebar-logo">
             <span class="logo-icon">☁️</span>
             <div>
-                <div class="logo-text">Cloud Cool</div>
+                <div class="logo-text">بيبي مون 🌙</div>
                 <div class="logo-sub">لوحة التحكم</div>
             </div>
         </div>
@@ -33,8 +33,11 @@
                 <span class="nav-icon">📦</span> الطلبات
                 <span class="badge-count" id="ordersNavBadge" style="display:none"></span>
             </a>
+            <a class="nav-item" onclick="showPage('banners')" id="nav-banners">
+                <span class="nav-icon">🖼️</span> البنرات
+            </a>
             <a class="nav-item" onclick="showPage('settings')" id="nav-settings">
-                <span class="nav-icon">⚙️</span> الإعدادات
+                <span class="nav-icon">⚙️</span> الأقسام
             </a>
         </nav>
         <div class="sidebar-footer">
@@ -50,7 +53,7 @@
     <!-- MOBILE TOPBAR -->
     <div class="mobile-topbar">
         <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <span class="mobile-logo">☁️ Cloud Cool</span>
+        <span class="mobile-logo">🌙 بيبي مون</span>
         <span></span>
     </div>
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -252,6 +255,17 @@
             </div>
         </div>
 
+        <!-- ===== BANNERS PAGE ===== -->
+        <div class="page" id="page-banners">
+            <div class="page-header">
+                <h1 class="page-title">🖼️ إدارة البنرات</h1>
+                <button class="btn btn-primary" onclick="openBannerModal()">+ إضافة بنر</button>
+            </div>
+            <div class="banners-grid" id="bannersGrid">
+                <div class="loading-state">جاري التحميل...</div>
+            </div>
+        </div>
+
     </main>
 
     <!-- TOAST -->
@@ -295,6 +309,76 @@
         <div class="modal-actions">
             <button class="btn btn-ghost" onclick="closeSubCategoryModal()">إلغاء</button>
             <button class="btn btn-primary" onclick="saveSubCategory()">حفظ القسم الفرعي</button>
+        </div>
+    </div>
+
+    <!-- BANNER MODAL -->
+    <div class="modal-overlay" id="bannerModalOverlay" onclick="closeBannerModal()"></div>
+    <div class="modal" id="bannerModal" style="max-width:520px">
+        <div class="modal-header">
+            <h2 id="bannerModalTitle">إضافة بنر جديد</h2>
+            <button class="modal-close" onclick="closeBannerModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="bannerId" />
+            <div class="form-group">
+                <label>عنوان البنر *</label>
+                <input type="text" id="bannerTitle" class="form-input" placeholder="مثال: عروض رمضان" required />
+            </div>
+            <div class="form-group">
+                <label>الوصف (يظهر داخل البنر)</label>
+                <input type="text" id="bannerDesc" class="form-input" placeholder="مثال: خصومات تصل 50%" />
+            </div>
+            <div class="form-group">
+                <label>صورة البنر</label>
+                <div class="image-upload-wrap" onclick="document.getElementById('bannerImage').click()" style="height:120px">
+                    <input type="file" id="bannerImage" accept="image/*" style="display:none" onchange="previewBannerImage(this)" />
+                    <div class="image-upload-placeholder" id="bannerImagePlaceholder">
+                        <div class="upload-icon">🖼️</div>
+                        <div>اضغط لرفع صورة البنر</div>
+                    </div>
+                    <img id="bannerImagePreview" class="image-preview" style="display:none" alt="معاينة" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>أو رابط صورة مباشر</label>
+                <input type="url" id="bannerImageUrl" class="form-input" placeholder="https://..." oninput="previewBannerUrl(this.value)" />
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>رابط البنر (عند الضغط)</label>
+                    <select id="bannerLinkType" class="form-input" onchange="toggleBannerCatField()">
+                        <option value="all">الصفحة الرئيسية</option>
+                        <option value="new">✨ الجديد</option>
+                        <option value="offers">🏷️ العروض</option>
+                        <option value="lowstock">⚡ قد تنفد</option>
+                        <option value="category">📂 قسم محدد</option>
+                    </select>
+                </div>
+                <div class="form-group" id="bannerCatField" style="display:none">
+                    <label>اسم القسم</label>
+                    <select id="bannerLinkValue" class="form-input">
+                        <option value="">-- اختر --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>الترتيب</label>
+                    <input type="number" id="bannerOrder" class="form-input" value="0" min="0" />
+                </div>
+                <div class="form-group">
+                    <label>الحالة</label>
+                    <select id="bannerActive" class="form-input">
+                        <option value="true">✅ مفعّل</option>
+                        <option value="false">❌ مخفي</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeBannerModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveBanner()">حفظ البنر</button>
         </div>
     </div>
 

@@ -56,6 +56,7 @@ function showPage(page) {
     if (page === 'orders') loadOrders();
     if (page === 'dashboard') loadStats();
     if (page === 'settings') loadSettingsData();
+    if (page === 'banners') loadBanners();
     closeMobileSidebar();
 }
 
@@ -567,3 +568,161 @@ function showToast(msg, isError = false) {
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => toast.classList.remove('show'), 3500);
 }
+
+// ============ BANNERS MANAGEMENT ============
+let allBanners = [];
+
+async function loadBanners() {
+    const grid = document.getElementById('bannersGrid');
+    grid.innerHTML = '<div class="loading-state">⏳ جاري التحميل...</div>';
+    try {
+        allBanners = await apiFetch('/api/banners/all');
+        renderBanners();
+    } catch (e) {
+        grid.innerHTML = `<div class="loading-state">⚠️ ${e.message}</div>`;
+    }
+}
+
+function renderBanners() {
+    const grid = document.getElementById('bannersGrid');
+    if (!allBanners.length) {
+        grid.innerHTML = '<div class="loading-state">لا توجد بنرات. اضغط "+ إضافة بنر" لإضافة أول بنر.</div>';
+        return;
+    }
+    const linkLabels = { all: 'الرئيسية', new: '✨ الجديد', offers: '🏷️ العروض', lowstock: '⚡ قد تنفد', category: '📂 قسم' };
+    grid.innerHTML = allBanners.map(b => `
+        <div class="banner-card ${b.active ? '' : 'banner-inactive'}">
+            <div class="banner-preview">
+                ${b.image
+                    ? `<img src="${b.image}" alt="${b.title}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`
+                    : `<div class="banner-no-img">🖼️ بدون صورة</div>`
+                }
+                <div class="banner-overlay-text">
+                    <strong>${b.title}</strong>
+                    ${b.description ? `<br><small>${b.description}</small>` : ''}
+                </div>
+            </div>
+            <div class="banner-info">
+                <span class="banner-link-badge">${linkLabels[b.link_type] || b.link_type} ${b.link_value ? '· ' + b.link_value : ''}</span>
+                <span class="banner-status ${b.active ? 'status-active' : 'status-inactive'}">${b.active ? '✅ مفعّل' : '❌ مخفي'}</span>
+            </div>
+            <div class="banner-actions">
+                <button class="btn btn-ghost btn-sm" onclick="editBanner(${b.id})">✏️ تعديل</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteBannerConfirm(${b.id}, '${escStr(b.title)}')">🗑️ حذف</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openBannerModal(bannerId = null) {
+    const banner = bannerId ? allBanners.find(b => b.id === bannerId) : null;
+    document.getElementById('bannerModalTitle').textContent = banner ? 'تعديل البنر' : 'إضافة بنر جديد';
+    document.getElementById('bannerId').value = banner?.id || '';
+    document.getElementById('bannerTitle').value = banner?.title || '';
+    document.getElementById('bannerDesc').value = banner?.description || '';
+    document.getElementById('bannerImageUrl').value = banner?.image || '';
+    document.getElementById('bannerLinkType').value = banner?.link_type || 'all';
+    document.getElementById('bannerOrder').value = banner?.order ?? 0;
+    document.getElementById('bannerActive').value = banner?.active !== false ? 'true' : 'false';
+
+    // Fill category options
+    const sel = document.getElementById('bannerLinkValue');
+    sel.innerHTML = '<option value="">-- اختر --</option>' +
+        allCategories.map(c => `<option value="${c.name}" ${banner?.link_value === c.name ? 'selected' : ''}>${c.label}</option>`).join('');
+
+    // Reset image preview
+    document.getElementById('bannerImagePreview').style.display = banner?.image ? 'block' : 'none';
+    document.getElementById('bannerImagePreview').src = banner?.image || '';
+    document.getElementById('bannerImagePlaceholder').style.display = banner?.image ? 'none' : 'flex';
+    document.getElementById('bannerImage').value = '';
+
+    toggleBannerCatField();
+
+    document.getElementById('bannerModal').classList.add('open');
+    document.getElementById('bannerModalOverlay').classList.add('open');
+}
+
+function editBanner(id) { openBannerModal(id); }
+
+function closeBannerModal() {
+    document.getElementById('bannerModal').classList.remove('open');
+    document.getElementById('bannerModalOverlay').classList.remove('open');
+}
+
+function toggleBannerCatField() {
+    const type = document.getElementById('bannerLinkType').value;
+    document.getElementById('bannerCatField').style.display = type === 'category' ? 'block' : 'none';
+}
+
+function previewBannerImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        document.getElementById('bannerImagePreview').src = e.target.result;
+        document.getElementById('bannerImagePreview').style.display = 'block';
+        document.getElementById('bannerImagePlaceholder').style.display = 'none';
+        document.getElementById('bannerImageUrl').value = '';
+    };
+    reader.readAsDataURL(file);
+}
+
+function previewBannerUrl(url) {
+    if (!url) return;
+    document.getElementById('bannerImagePreview').src = url;
+    document.getElementById('bannerImagePreview').style.display = 'block';
+    document.getElementById('bannerImagePlaceholder').style.display = 'none';
+    document.getElementById('bannerImage').value = '';
+}
+
+async function saveBanner() {
+    const id = document.getElementById('bannerId').value;
+    const title = document.getElementById('bannerTitle').value.trim();
+    if (!title) { showToast('العنوان مطلوب', true); return; }
+
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('description', document.getElementById('bannerDesc').value.trim());
+    formData.append('link_type', document.getElementById('bannerLinkType').value);
+    formData.append('link_value', document.getElementById('bannerLinkType').value === 'category'
+        ? document.getElementById('bannerLinkValue').value : '');
+    formData.append('order', document.getElementById('bannerOrder').value);
+    formData.append('active', document.getElementById('bannerActive').value);
+
+    const imageFile = document.getElementById('bannerImage').files[0];
+    const imageUrl = document.getElementById('bannerImageUrl').value.trim();
+    if (imageFile) { formData.append('image', imageFile); }
+    else if (imageUrl) { formData.append('image_url', imageUrl); }
+
+    try {
+        if (id) {
+            await apiFetch(`/api/banners/${id}`, { method: 'PUT', body: formData });
+            showToast('✅ تم تحديث البنر!');
+        } else {
+            await apiFetch('/api/banners', { method: 'POST', body: formData });
+            showToast('✅ تم إضافة البنر!');
+        }
+        closeBannerModal();
+        loadBanners();
+    } catch (e) {
+        showToast(e.message, true);
+    }
+}
+
+function deleteBannerConfirm(id, title) {
+    document.getElementById('confirmMessage').textContent = `هل تريد حذف البنر "${title}"؟`;
+    document.getElementById('confirmActionBtn').onclick = () => deleteBanner(id);
+    document.getElementById('confirmOverlay').classList.add('open');
+    document.getElementById('confirmModal').classList.add('open');
+}
+
+async function deleteBanner(id) {
+    try {
+        await apiFetch(`/api/banners/${id}`, { method: 'DELETE' });
+        closeConfirmModal();
+        showToast('✅ تم حذف البنر');
+        loadBanners();
+    } catch (e) { showToast(e.message, true); }
+}
+
+function escStr(s) { return (s || '').replace(/'/g, "\\'"); }
