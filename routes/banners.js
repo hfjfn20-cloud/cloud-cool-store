@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const { db, nextId, isMongo, models, getNextSequence } = require('../database');
 const { verifyAdmin } = require('./auth');
-const { isImgbbConfigured, uploadToImgBB } = require('../config/imageStorage');
+const { isImgbbConfigured, uploadToImgBB, handleImageUpload } = require('../config/imageStorage');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
 
@@ -63,19 +63,17 @@ router.post('/', verifyAdmin, upload.single('image'), async (req, res) => {
 
         let image = req.body.image_url || '';
         if (req.file) {
-            if (isImgbbConfigured()) {
-                image = await uploadToImgBB(req.file.buffer, req.file.originalname);
-            }
+            image = await handleImageUpload(req.file, image, 'banner');
         }
 
         const bannerData = {
             title,
             description: description || '',
-            image,
+            image: image || '',
             link_type: link_type || 'all',
             link_value: link_value || '',
             order: parseInt(order) || 0,
-            active: active !== 'false'
+            active: active !== 'false' && active !== false
         };
 
         if (isMongo()) {
@@ -91,7 +89,7 @@ router.post('/', verifyAdmin, upload.single('image'), async (req, res) => {
         }
     } catch (err) {
         console.error('Banner POST error:', err);
-        res.status(500).json({ error: 'خطأ في إضافة البنر' });
+        res.status(500).json({ error: err.message || 'خطأ في إضافة البنر' });
     }
 });
 
@@ -102,9 +100,9 @@ router.put('/:id', verifyAdmin, upload.single('image'), async (req, res) => {
         const { title, description, link_type, link_value, order, active, image_url } = req.body;
 
         let image;
-        if (req.file && isImgbbConfigured()) {
-            image = await uploadToImgBB(req.file.buffer, req.file.originalname);
-        } else if (image_url !== undefined) {
+        if (req.file) {
+            image = await handleImageUpload(req.file, '', 'banner');
+        } else if (image_url !== undefined && image_url !== '') {
             image = image_url;
         }
 
@@ -132,7 +130,7 @@ router.put('/:id', verifyAdmin, upload.single('image'), async (req, res) => {
         }
     } catch (err) {
         console.error('Banner PUT error:', err);
-        res.status(500).json({ error: 'خطأ في تعديل البنر' });
+        res.status(500).json({ error: err.message || 'خطأ في تعديل البنر' });
     }
 });
 

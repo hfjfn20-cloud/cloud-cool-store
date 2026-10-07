@@ -837,6 +837,12 @@ async function saveBanner() {
     const title = document.getElementById('bannerTitle').value.trim();
     if (!title) { showToast('العنوان مطلوب', true); return; }
 
+    const submitBtn = document.querySelector('#bannerModal .modal-actions .btn-primary');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = '⏳ جاري الحفظ والرفع...';
+    }
+
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', document.getElementById('bannerDesc').value.trim());
@@ -854,15 +860,20 @@ async function saveBanner() {
     try {
         if (id) {
             await apiFetch(`/api/banners/${id}`, { method: 'PUT', body: formData });
-            showToast('✅ تم تحديث البنر!');
+            showToast('✅ تم تحديث البنر بنجاح!');
         } else {
             await apiFetch('/api/banners', { method: 'POST', body: formData });
-            showToast('✅ تم إضافة البنر!');
+            showToast('✅ تم إضافة البنر بنجاح!');
         }
         closeBannerModal();
-        loadBanners();
+        await loadBanners();
     } catch (e) {
-        showToast(e.message, true);
+        showToast('❌ ' + (e.message || 'حدث خطأ أثناء الحفظ'), true);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'حفظ البنر';
+        }
     }
 }
 
