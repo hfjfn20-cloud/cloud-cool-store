@@ -964,62 +964,7 @@ select.status-select {
     background: linear-gradient(135deg, #e74c3c, #c0392b);
 }
 
-/* ============ RESPONSIVE ============ */
-@media (max-width: 1024px) {
-    .sidebar {
-        transform: translateX(100%) !important;
-        right: 0 !important;
-        left: auto !important;
-    }
 
-    .sidebar.mobile-open {
-        transform: translateX(0) !important;
-    }
-
-    .sidebar-overlay.open {
-        display: block;
-    }
-
-    .main {
-        margin-right: 0 !important;
-        padding: 1rem;
-        padding-top: 4.5rem;
-    }
-
-    .mobile-topbar {
-        display: flex;
-    }
-
-    .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-    }
-
-    .filter-tabs {
-        justify-content: flex-start;
-    }
-
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .order-top {
-        flex-direction: column;
-    }
-}
 /* ============ SETTINGS PAGE (3-Tier Category Management) ============ */
 .settings-grid {
     display: grid;
@@ -1273,44 +1218,106 @@ select.status-select {
 .banner-actions .btn-sm { flex: 1; padding: 0.35rem 0.5rem; font-size: 0.85rem; }
 
 /* ============ RESPONSIVE / MOBILE ============ */
-@media (max-width: 768px) {
-    /* Sidebar: hide off-screen to the right using transform */
-    /* Note: we use transform (NOT right property) because
-       body overflow-x:hidden would clip right-positioned elements.
-       Fixed elements are NOT clipped by ancestor overflow. */
-    .sidebar {
-        transform: translateX(calc(100% + 20px));
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 200;
-        box-shadow: none;
-        /* Force GPU layer to avoid clipping */
-        will-change: transform;
-    }
-    .sidebar.open {
-        transform: translateX(0);
-        box-shadow: -4px 0 30px rgba(0,0,0,0.35);
-    }
+.sidebar-close-btn {
+    display: none;
+}
 
-    /* Show mobile topbar */
+@media (max-width: 1024px) {
+    /* Mobile topbar */
     .mobile-topbar {
         display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        z-index: 1030;
+        background: var(--sidebar-bg);
+        color: white;
+        padding: 0 1.25rem;
+        align-items: center;
+        justify-content: space-between;
     }
 
     /* Main fills full width, shifted down for topbar */
     .main {
-        margin-right: 0;
+        margin-right: 0 !important;
         padding: 1rem;
-        padding-top: 5rem;
+        padding-top: calc(60px + 1rem) !important;
         min-height: 100vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Show sidebar overlay when open */
-    .sidebar-overlay.open {
-        display: block;
+    /* Sidebar overlay */
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
     }
 
+    .sidebar-overlay.open {
+        display: block !important;
+    }
+
+    /* Mobile sidebar drawer */
+    .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        left: auto !important;
+        width: 280px !important;
+        max-width: 85vw !important;
+        z-index: 1050 !important;
+        transform: translateX(110%) !important;
+        -webkit-transform: translateX(110%) !important;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: none !important;
+        will-change: transform;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Both .open and .mobile-open supported */
+    .sidebar.open,
+    .sidebar.mobile-open {
+        transform: translateX(0) !important;
+        -webkit-transform: translateX(0) !important;
+        box-shadow: -4px 0 30px rgba(0, 0, 0, 0.45) !important;
+    }
+
+    .sidebar-close-btn {
+        display: flex;
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        color: white;
+        font-size: 1.1rem;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        margin-right: auto;
+        transition: background 0.2s;
+    }
+    .sidebar-close-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Stats grid */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
     /* Responsive tables */
     .table-wrap {
         overflow-x: auto;
@@ -1321,6 +1328,7 @@ select.status-select {
     .page-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.5rem;
     }
 
     /* Stats grid two columns on mobile */
@@ -1337,10 +1345,16 @@ select.status-select {
     /* Form rows stack on mobile */
     .form-row {
         flex-direction: column;
+        grid-template-columns: 1fr;
+    }
+
+    .filter-tabs {
+        justify-content: flex-start;
     }
 
     /* Category cards single column */
-    .category-cards-grid {
+    .category-cards-grid,
+    .settings-grid {
         grid-template-columns: 1fr;
     }
 }
@@ -1355,5 +1369,8 @@ select.status-select {
     .btn {
         padding: 0.5rem 0.9rem;
         font-size: 0.85rem;
+    }
+    .order-top {
+        flex-direction: column;
     }
 }

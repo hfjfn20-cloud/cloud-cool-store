@@ -102,12 +102,26 @@ function showPage(page) {
 }
 
 function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('open');
-    document.querySelector('.sidebar-overlay').classList.toggle('open');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) {
+        sidebar.classList.toggle('open');
+        sidebar.classList.toggle('mobile-open');
+    }
+    if (overlay) {
+        overlay.classList.toggle('open');
+    }
 }
 function closeMobileSidebar() {
-    document.querySelector('.sidebar').classList.remove('open');
-    document.querySelector('.sidebar-overlay').classList.remove('open');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) {
+        sidebar.classList.remove('open');
+        sidebar.classList.remove('mobile-open');
+    }
+    if (overlay) {
+        overlay.classList.remove('open');
+    }
 }
 
 // ============ LOAD STATS ============
