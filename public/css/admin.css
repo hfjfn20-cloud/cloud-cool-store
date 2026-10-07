@@ -36,6 +36,8 @@ body {
     color: var(--text);
     direction: rtl;
     min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 /* ============ SIDEBAR ============ */
@@ -182,6 +184,9 @@ body {
     flex: 1;
     padding: 2rem;
     min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ============ PAGES ============ */
@@ -192,6 +197,8 @@ body {
 
 .page.active {
     display: block;
+    min-height: calc(100vh - 4rem);
+    overflow-y: visible;
 }
 
 @keyframes fadeInUp {
@@ -1260,3 +1267,106 @@ select.status-select {
   display: flex; gap: 0.5rem; padding: 0.6rem 1rem;
 }
 .banner-actions .btn-sm { flex: 1; padding: 0.35rem 0.5rem; font-size: 0.85rem; }
+
+/* ============ RESPONSIVE / MOBILE ============ */
+@media (max-width: 768px) {
+    /* Hide sidebar by default on mobile */
+    .sidebar {
+        transform: translateX(110%);
+        transition: transform 0.3s ease;
+        z-index: 200;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Show mobile topbar */
+    .mobile-topbar {
+        display: flex;
+    }
+
+    /* Main fills full width, shifted down for topbar */
+    .main {
+        margin-right: 0;
+        padding: 1rem;
+        padding-top: 5rem; /* space for fixed topbar */
+        min-height: 100vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Show sidebar overlay */
+    .sidebar-overlay.open {
+        display: block;
+    }
+
+    /* Responsive tables */
+    .table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Stack page header on mobile */
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    /* Stats grid single column */
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    /* Banners grid single column */
+    .banners-grid {
+        grid-template-columns: 1fr;
+        padding: 0.75rem;
+    }
+
+    /* Form columns */
+    .form-row {
+        flex-direction: column;
+    }
+
+    /* Modal full screen on mobile */
+    .modal {
+        align-items: flex-end;
+    }
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 20px 20px 0 0;
+        max-height: 92vh;
+    }
+    .modal-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 1rem;
+    }
+    .modal-footer {
+        position: sticky;
+        bottom: 0;
+        background: white;
+        padding: 0.75rem 1rem;
+        border-top: 1px solid #f1f5f9;
+        z-index: 10;
+    }
+
+    /* Category cards */
+    .category-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    .page-title {
+        font-size: 1.3rem;
+    }
+    .btn {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+    }
+}

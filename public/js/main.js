@@ -647,12 +647,17 @@ function updateCartUI() {
     const itemsEl = document.getElementById('cartItems');
     const emptyEl = document.getElementById('cartEmpty');
     const footerEl = document.getElementById('cartFooter');
+    const buyBarEl = document.getElementById('cartBuyBar');
     document.getElementById('cartTotal').textContent = total.toLocaleString('ar-IQ') + ' دينار';
 
     if (!cart.length) {
-        itemsEl.innerHTML = ''; emptyEl.style.display = 'flex'; footerEl.style.display = 'none';
+        itemsEl.innerHTML = ''; emptyEl.style.display = 'flex';
+        footerEl.style.display = 'none';
+        if (buyBarEl) buyBarEl.style.display = 'none';
     } else {
-        emptyEl.style.display = 'none'; footerEl.style.display = 'block';
+        emptyEl.style.display = 'none';
+        footerEl.style.display = 'block';
+        if (buyBarEl) buyBarEl.style.display = 'block';
         itemsEl.innerHTML = cart.map(item => `
             <div class="cart-item">
                 <div class="cart-item-img">

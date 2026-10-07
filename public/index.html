@@ -70,6 +70,7 @@
       <div style="font-size:3rem;">🛒</div>
       <p>السلة فارغة</p>
     </div>
+    <!-- cart-footer: scrollable form area -->
     <div class="cart-footer" id="cartFooter" style="display:none;">
       <div class="cart-total">
         <span>المجموع:</span>
@@ -80,10 +81,13 @@
         <input type="text" id="custName" class="form-input" placeholder="الاسم الكامل *" required />
         <input type="text" id="custAddress" class="form-input" placeholder="العنوان التفصيلي" />
         <input type="tel" id="custPhone" class="form-input" placeholder="رقم الهاتف (واتساب) *" required />
-        <button class="checkout-btn" onclick="placeOrder()">
-          🛍️ اشتري الآن
-        </button>
       </div>
+    </div>
+    <!-- buy button: always sticky at very bottom -->
+    <div class="cart-buy-bar" id="cartBuyBar" style="display:none;">
+      <button class="checkout-btn" onclick="placeOrder()">
+        🛍️ اشتري الآن
+      </button>
     </div>
   </aside>
 

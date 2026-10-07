@@ -647,7 +647,9 @@ body::after {
   position: fixed;
   right: -100%;
   top: 0;
+  /* Use dynamic viewport height so sidebar shrinks when keyboard opens */
   height: 100vh;
+  height: 100dvh;
   width: min(420px, 95vw);
   background: white;
   z-index: 101;
@@ -656,6 +658,7 @@ body::after {
   transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: -8px 0 30px rgba(0, 0, 0, 0.2);
   border-radius: var(--radius) 0 0 var(--radius);
+  overflow: hidden;
 }
 
 .cart-sidebar.open {
@@ -698,7 +701,10 @@ body::after {
 .cart-items {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1rem;
+  -webkit-overflow-scrolling: touch;
+  min-height: 0; /* Important: allows flex child to shrink */
 }
 
 .cart-empty {
@@ -801,12 +807,23 @@ body::after {
 }
 
 .cart-footer {
-  padding: 1rem 1.5rem;
-  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  padding: 1rem 1.5rem 0.5rem;
   border-top: 2px solid rgba(155, 89, 182, 0.15);
   background: white;
   flex-shrink: 0;
-  box-shadow: 0 -4px 20px rgba(155, 89, 182, 0.12);
+  overflow-y: auto;
+  max-height: 55vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============ BUY BAR (always visible sticky button) ============ */
+.cart-buy-bar {
+  padding: 0.75rem 1.5rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+  background: white;
+  flex-shrink: 0;
+  box-shadow: 0 -4px 20px rgba(155, 89, 182, 0.15);
+  border-top: 1px solid rgba(155, 89, 182, 0.1);
 }
 
 .cart-total {
@@ -869,6 +886,10 @@ body::after {
   box-shadow: 0 4px 15px rgba(155, 89, 182, 0.35);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+  /* Always ensure the button is fully visible */
+  position: relative;
+  z-index: 2;
+  display: block;
 }
 
 .checkout-btn:hover {
