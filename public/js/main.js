@@ -138,8 +138,8 @@ function slideNext() {
 function updateSlider() {
     const track = document.getElementById('sliderTrack');
     if (!track) return;
-    // RTL: for Arabic we invert direction
-    track.style.transform = `translateX(${sliderIndex * 100}%)`;
+    // Move track to the active slide (LTR track requires negative offset)
+    track.style.transform = `translateX(-${sliderIndex * 100}%)`;
     document.querySelectorAll('.slider-dot').forEach((d, i) => {
         d.classList.toggle('active', i === sliderIndex);
     });

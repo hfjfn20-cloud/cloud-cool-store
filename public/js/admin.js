@@ -777,7 +777,7 @@ function openBannerModal(bannerId = null) {
     document.getElementById('bannerId').value = banner?.id || '';
     document.getElementById('bannerTitle').value = banner?.title || '';
     document.getElementById('bannerDesc').value = banner?.description || '';
-    document.getElementById('bannerImageUrl').value = banner?.image || '';
+    document.getElementById('bannerImageUrl').value = (banner?.image && banner.image.startsWith('http')) ? banner.image : '';
     document.getElementById('bannerLinkType').value = banner?.link_type || 'all';
     document.getElementById('bannerOrder').value = banner?.order ?? 0;
     document.getElementById('bannerActive').value = banner?.active !== false ? 'true' : 'false';
@@ -825,11 +825,15 @@ function previewBannerImage(input) {
 }
 
 function previewBannerUrl(url) {
-    if (!url) return;
-    document.getElementById('bannerImagePreview').src = url;
-    document.getElementById('bannerImagePreview').style.display = 'block';
-    document.getElementById('bannerImagePlaceholder').style.display = 'none';
-    document.getElementById('bannerImage').value = '';
+    if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        document.getElementById('bannerImagePreview').src = url;
+        document.getElementById('bannerImagePreview').style.display = 'block';
+        document.getElementById('bannerImagePlaceholder').style.display = 'none';
+        document.getElementById('bannerImage').value = '';
+    } else if (!document.getElementById('bannerImage').files.length) {
+        document.getElementById('bannerImagePreview').style.display = 'none';
+        document.getElementById('bannerImagePlaceholder').style.display = 'flex';
+    }
 }
 
 async function saveBanner() {
