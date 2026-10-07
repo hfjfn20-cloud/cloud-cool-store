@@ -30,13 +30,17 @@
     --sidebar-w: 260px;
 }
 
+/* Prevent horizontal scroll without blocking fixed sidebar */
+html {
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Tajawal', sans-serif;
     background: var(--bg);
     color: var(--text);
     direction: rtl;
     min-height: 100vh;
-    overflow-x: hidden;
     overflow-y: auto;
 }
 
@@ -1270,16 +1274,21 @@ select.status-select {
 
 /* ============ RESPONSIVE / MOBILE ============ */
 @media (max-width: 768px) {
-    /* Sidebar: RTL-safe hide using right offset */
+    /* Sidebar: hide off-screen to the right using transform */
+    /* Note: we use transform (NOT right property) because
+       body overflow-x:hidden would clip right-positioned elements.
+       Fixed elements are NOT clipped by ancestor overflow. */
     .sidebar {
-        right: -280px;
-        transition: right 0.3s ease;
+        transform: translateX(calc(100% + 20px));
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         z-index: 200;
         box-shadow: none;
+        /* Force GPU layer to avoid clipping */
+        will-change: transform;
     }
     .sidebar.open {
-        right: 0;
-        box-shadow: -4px 0 20px rgba(0,0,0,0.3);
+        transform: translateX(0);
+        box-shadow: -4px 0 30px rgba(0,0,0,0.35);
     }
 
     /* Show mobile topbar */
