@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const { initializeDatabase, isMongo } = require('./database');
-const { isImgbbConfigured } = require('./config/imageStorage');
+const { isImgbbConfigured, isCloudinaryConfigured } = require('./config/imageStorage');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,8 +17,8 @@ if (!fs.existsSync(uploadsDir)) {
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -36,7 +36,9 @@ app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
         database: isMongo() ? 'MongoDB Atlas (Cloud)' : 'Local db.json (Fallback)',
-        storage: isImgbbConfigured() ? 'ImgBB Cloud CDN (Ready)' : 'Local /uploads (Fallback)'
+        storage: isCloudinaryConfigured()
+            ? 'Cloudinary (Cloud CDN)'
+            : (isImgbbConfigured() ? 'ImgBB Cloud CDN' : 'Database Direct / Base64')
     });
 });
 

@@ -5,43 +5,14 @@ const path = require('path');
 const fs = require('fs');
 const { db, nextId, isMongo, models, getNextSequence } = require('../database');
 const { verifyAdmin } = require('./auth');
-const { isImgbbConfigured, uploadToImgBB } = require('../config/imageStorage');
+const { handleImageUpload } = require('../config/imageStorage');
 
-// Multer memory storage (allows streaming directly to ImgBB or disk fallback)
+// Multer memory storage (files are uploaded to cloud, not disk)
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
     limits: { fileSize: 15 * 1024 * 1024 } // 15MB limit
 });
-
-// Helper: Handle image saving (ImgBB Cloud or local fallback)
-async function handleImageUpload(file, manualUrl = '') {
-    if (!file) return manualUrl || null;
-
-    if (isImgbbConfigured()) {
-        try {
-            console.log('☁️ Uploading product image to ImgBB Cloud...');
-            const cloudUrl = await uploadToImgBB(file.buffer, file.originalname);
-            console.log('✅ Image uploaded to ImgBB successfully:', cloudUrl);
-            return cloudUrl;
-        } catch (err) {
-            console.error('❌ ImgBB upload failed:', err.message);
-            console.log('🔄 Falling back to local disk storage on error.');
-        }
-    }
-
-    // Local uploads directory fallback
-    const uploadsDir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
-
-    const ext = path.extname(file.originalname) || '.jpg';
-    const filename = `product_${Date.now()}_${Math.round(Math.random() * 1e9)}${ext}`;
-    const filePath = path.join(uploadsDir, filename);
-
-    fs.writeFileSync(filePath, file.buffer);
-    console.log('📁 Saved image locally:', filename);
-    return `/uploads/${filename}`;
-}
 
 // Helper: enrich product with category labels
 async function enrichProduct(p) {
@@ -175,7 +146,7 @@ router.post('/', verifyAdmin, upload.single('image'), async (req, res) => {
         const { name, description, price, category_id, subcategory_id, item_type_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
         if (!name || !price) return res.status(400).json({ error: 'الاسم والسعر مطلوبان' });
 
-        const image = await handleImageUpload(req.file, image_url);
+        const image = await handleImageUpload(req.file, image_url, 'product');
 
         const productData = {
             name,
@@ -229,7 +200,7 @@ router.put('/:id', verifyAdmin, upload.single('image'), async (req, res) => {
         
         let image = existing.image;
         if (req.file) {
-            image = await handleImageUpload(req.file);
+            image = await handleImageUpload(req.file, '', 'product');
         } else if (image_url !== undefined && image_url !== '') {
             image = image_url;
         }
