@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
                 db.set('banners', DEFAULT_BANNERS).write();
                 banners = DEFAULT_BANNERS;
             }
-            return res.json(banners.filter(b => b.active).sort((a, b) => a.order - b.order));
+            return res.json(banners.filter(b => b.active !== false).sort((a, b) => (a.order || a.sort_order || 0) - (b.order || b.sort_order || 0)));
         }
     } catch (err) {
         console.error('Banners GET error:', err);

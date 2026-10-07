@@ -79,23 +79,46 @@ async function initializeDatabase() {
 
     if (db.get('categories').value().length === 0) {
         db.get('categories').push(
-            { id: 1, name: 'boys', label: 'ولادي' },
-            { id: 2, name: 'girls', label: 'بناتي' }
+            { id: 1, name: 'clothes', label: 'ملابس', icon: '👕' },
+            { id: 2, name: 'stationery', label: 'قرطاسية', icon: '✏️' },
+            { id: 3, name: 'toys', label: 'ألعاب', icon: '🧸' },
+            { id: 4, name: 'accessories', label: 'إكسسوارات', icon: '🎀' }
         ).write();
 
         db.get('subcategories').push(
-            { id: 1, category_id: 1, name: 'tshirt', label: 'تيشيرت' },
-            { id: 2, category_id: 1, name: 'jeans', label: 'جينز' },
-            { id: 3, category_id: 1, name: 'shorts', label: 'شورت' },
-            { id: 4, category_id: 1, name: 'suit', label: 'بدلة' },
-            { id: 5, category_id: 1, name: 'overall', label: 'أوفر' },
-            { id: 6, category_id: 1, name: 'pants', label: 'بنطلون' },
-            { id: 7, category_id: 2, name: 'dress', label: 'فستان' },
-            { id: 8, category_id: 2, name: 'skirt', label: 'تنورة' },
-            { id: 9, category_id: 2, name: 'blouse', label: 'بلوز' },
-            { id: 10, category_id: 2, name: 'jeans', label: 'جينز' },
-            { id: 11, category_id: 2, name: 'suit', label: 'بدلة' },
-            { id: 12, category_id: 2, name: 'overall', label: 'أوفر' }
+            // ملابس - ولادي
+            { id: 101, category_id: 1, gender: 'boys', name: 'boys-track', label: 'تراك ولادي' },
+            { id: 102, category_id: 1, gender: 'boys', name: 'boys-shorts', label: 'شورت ولادي' },
+            { id: 103, category_id: 1, gender: 'boys', name: 'boys-tshirt', label: 'تيشيرت ولادي' },
+            { id: 104, category_id: 1, gender: 'boys', name: 'boys-jeans', label: 'جينز ولادي' },
+            { id: 105, category_id: 1, gender: 'boys', name: 'boys-suit', label: 'بدلة ولادي' },
+            { id: 106, category_id: 1, gender: 'boys', name: 'boys-pants', label: 'بنطلون ولادي' },
+            { id: 107, category_id: 1, gender: 'boys', name: 'boys-overall', label: 'أوفر ولادي' },
+            // ملابس - بناتي
+            { id: 201, category_id: 1, gender: 'girls', name: 'girls-dress', label: 'فستان بناتي' },
+            { id: 202, category_id: 1, gender: 'girls', name: 'girls-skirt', label: 'تنورة بناتي' },
+            { id: 203, category_id: 1, gender: 'girls', name: 'girls-blouse', label: 'بلوز بناتي' },
+            { id: 204, category_id: 1, gender: 'girls', name: 'girls-track', label: 'تراك بناتي' },
+            { id: 205, category_id: 1, gender: 'girls', name: 'girls-shorts', label: 'شورت بناتي' },
+            { id: 206, category_id: 1, gender: 'girls', name: 'girls-suit', label: 'بدلة بناتي' },
+            { id: 207, category_id: 1, gender: 'girls', name: 'girls-jeans', label: 'جينز بناتي' },
+            { id: 208, category_id: 1, gender: 'girls', name: 'girls-overall', label: 'أوفر بناتي' },
+            // قرطاسية
+            { id: 301, category_id: 2, name: 'notebooks', label: 'دفاتر وكشاكيل' },
+            { id: 302, category_id: 2, name: 'pens', label: 'أقلام وألوان' },
+            { id: 303, category_id: 2, name: 'school-bags', label: 'حقائب مدرسية' },
+            { id: 304, category_id: 2, name: 'drawing', label: 'أدوات رسم' },
+            // ألعاب
+            { id: 401, category_id: 3, name: 'cars', label: 'سيارات ومجسمات' },
+            { id: 402, category_id: 3, name: 'dolls', label: 'عرائس ودمى' },
+            { id: 403, category_id: 3, name: 'educational', label: 'ألعاب ذكاء وتعليمية' },
+            { id: 404, category_id: 3, name: 'puzzle', label: 'تركيب وبازل' },
+            // إكسسوارات
+            { id: 501, category_id: 4, name: 'watches', label: 'ساعات' },
+            { id: 502, category_id: 4, name: 'glasses', label: 'نظارات' },
+            { id: 503, category_id: 4, name: 'hats', label: 'قبعات' },
+            { id: 504, category_id: 4, name: 'bags', label: 'حقائب ومحافظ' },
+            { id: 505, category_id: 4, name: 'hair', label: 'إكسسوارات شعر' }
         ).write();
     }
 

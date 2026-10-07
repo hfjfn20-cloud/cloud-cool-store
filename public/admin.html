@@ -13,6 +13,23 @@
 
 <body>
 
+    <!-- ADMIN LOGIN SCREEN (fallback if opened directly without login) -->
+    <div id="adminLoginScreen" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.92); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:1rem;">
+        <div style="background:white; border-radius:24px; padding:2rem; width:100%; max-width:400px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:3rem; margin-bottom:0.5rem;">🌙🔐</div>
+            <h2 style="font-size:1.5rem; font-weight:800; color:#1e293b; margin-bottom:0.4rem;">بيبي مون</h2>
+            <p style="color:#64748b; font-size:0.95rem; margin-bottom:1.5rem;">الدخول إلى لوحة التحكم</p>
+            <form onsubmit="doAdminLogin(event)">
+                <input type="password" id="adminScreenPass" placeholder="كلمة المرور (admin123)" class="form-input" style="width:100%; padding:0.8rem 1rem; border-radius:12px; border:2px solid #e2e8f0; font-size:1rem; margin-bottom:1rem; box-sizing:border-box;" required autofocus />
+                <div id="adminScreenErr" style="display:none; color:#ef4444; font-size:0.85rem; margin-bottom:1rem; font-weight:600;"></div>
+                <button type="submit" class="btn btn-primary" style="width:100%; padding:0.8rem; border-radius:12px; font-size:1rem; font-weight:700;">دخول</button>
+                <div style="margin-top:1rem;">
+                    <a href="/" style="color:#64748b; text-decoration:none; font-size:0.85rem;">← العودة للمتجر</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="sidebar-logo">

@@ -120,7 +120,7 @@
     </div>
     <div class="modal-body">
       <p class="modal-hint">أدخل كلمة المرور للدخول إلى لوحة التحكم</p>
-      <input type="password" id="adminPasswordInput" class="form-input" placeholder="كلمة المرور" />
+      <input type="password" id="adminPasswordInput" class="form-input" placeholder="كلمة المرور" onkeydown="if(event.key==='Enter') submitAdminLogin()" />
       <div class="modal-error" id="adminError" style="display:none;"></div>
       <button class="checkout-btn" onclick="submitAdminLogin()">دخول</button>
     </div>

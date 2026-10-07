@@ -50,16 +50,22 @@ async function enrichProduct(p) {
         const sub = p.subcategory_id ? await models.Subcategory.findOne({ id: p.subcategory_id }).lean() : null;
         return {
             ...p,
+            category: cat?.name || '',
             category_label: cat?.label || '',
-            subcategory_label: sub?.label || ''
+            subcategory: sub?.name || '',
+            subcategory_label: sub?.label || '',
+            gender: sub?.gender || p.gender || null
         };
     } else {
         const cat = db.get('categories').find({ id: p.category_id }).value();
         const sub = db.get('subcategories').find({ id: p.subcategory_id }).value();
         return {
             ...p,
+            category: cat?.name || '',
             category_label: cat?.label || '',
-            subcategory_label: sub?.label || ''
+            subcategory: sub?.name || '',
+            subcategory_label: sub?.label || '',
+            gender: sub?.gender || p.gender || null
         };
     }
 }
@@ -67,17 +73,21 @@ async function enrichProduct(p) {
 // GET /api/products
 router.get('/', async (req, res) => {
     try {
-        const { category, subcategory, type, search } = req.query;
+        const { category, subcategory, gender, type, search } = req.query;
 
         if (isMongo()) {
             const filter = {};
 
             if (category) {
-                const cat = await models.Category.findOne({ name: category }).lean();
+                const cat = await models.Category.findOne({
+                    $or: [{ name: category }, { id: isNaN(category) ? -1 : parseInt(category) }]
+                }).lean();
                 if (cat) filter.category_id = cat.id;
             }
             if (subcategory) {
-                const sub = await models.Subcategory.findOne({ name: subcategory }).lean();
+                const sub = await models.Subcategory.findOne({
+                    $or: [{ name: subcategory }, { id: isNaN(subcategory) ? -1 : parseInt(subcategory) }]
+                }).lean();
                 if (sub) filter.subcategory_id = sub.id;
             }
             if (type === 'new') filter.is_new = true;
@@ -90,17 +100,20 @@ router.get('/', async (req, res) => {
             }
 
             const products = await models.Product.find(filter).sort({ id: -1 }).lean();
-            const enriched = await Promise.all(products.map(enrichProduct));
+            let enriched = await Promise.all(products.map(enrichProduct));
+            if (gender) {
+                enriched = enriched.filter(p => p.gender === gender);
+            }
             return res.json(enriched);
         } else {
             let products = db.get('products').value();
 
             if (category) {
-                const cat = db.get('categories').find({ name: category }).value();
+                const cat = db.get('categories').find(c => c.name === category || c.id === parseInt(category)).value();
                 if (cat) products = products.filter(p => p.category_id === cat.id);
             }
             if (subcategory) {
-                const sub = db.get('subcategories').find({ name: subcategory }).value();
+                const sub = db.get('subcategories').find(s => s.name === subcategory || s.id === parseInt(subcategory)).value();
                 if (sub) products = products.filter(p => p.subcategory_id === sub.id);
             }
             if (type === 'new') products = products.filter(p => p.is_new);
@@ -116,7 +129,10 @@ router.get('/', async (req, res) => {
             }
 
             products = products.sort((a, b) => b.id - a.id);
-            const enriched = await Promise.all(products.map(enrichProduct));
+            let enriched = await Promise.all(products.map(enrichProduct));
+            if (gender) {
+                enriched = enriched.filter(p => p.gender === gender);
+            }
             return res.json(enriched);
         }
     } catch (err) {

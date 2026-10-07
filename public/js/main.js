@@ -178,18 +178,29 @@ function buildCatTabs() {
     const row = document.getElementById('catTabsRow');
     if (!row) return;
 
-    let html = `<button class="cat-tab active" id="tab-home" onclick="navigate('#/')">🏠 الرئيسية</button>`;
-    allCategories.forEach(cat => {
-        html += `<button class="cat-tab" id="tab-${cat.name}" onclick="navigate('#/category/${encodeURIComponent(cat.name)}')">${cat.label}</button>`;
+    // The 4 requested categories
+    const targetCats = [
+        { name: 'clothes', label: 'ملابس', icon: '👕' },
+        { name: 'stationery', label: 'قرطاسية', icon: '✏️' },
+        { name: 'toys', label: 'ألعاب', icon: '🧸' },
+        { name: 'accessories', label: 'إكسسوارات', icon: '🎀' }
+    ];
+
+    const catsToRender = targetCats.map(tc => {
+        const found = allCategories.find(c => c.name === tc.name);
+        return found ? { ...tc, ...found } : tc;
+    });
+
+    let html = '';
+    catsToRender.forEach(cat => {
+        html += `<button class="cat-tab" id="tab-${cat.name}" onclick="navigate('#/category/${encodeURIComponent(cat.name)}')"><span>${cat.icon}</span> <span>${cat.label}</span></button>`;
     });
     row.innerHTML = html;
 }
 
 function updateActiveCatTab(hash) {
     document.querySelectorAll('.cat-tab').forEach(b => b.classList.remove('active'));
-    if (hash === '#/' || hash === '') {
-        document.getElementById('tab-home')?.classList.add('active');
-    } else if (hash.startsWith('#/category/')) {
+    if (hash && hash.startsWith('#/category/')) {
         const name = decodeURIComponent(hash.replace('#/category/', ''));
         document.getElementById(`tab-${name}`)?.classList.add('active');
     }
@@ -205,30 +216,35 @@ async function renderHome() {
         const products = await apiFetch('/api/products');
         let html = '';
 
-        // Section per category
-        for (const cat of allCategories) {
-            const catProducts = products.filter(p => p.category === cat.name);
+        // Order preference: 1. ملابس, 2. إكسسوارات, 3. ألعاب, 4. قرطاسية
+        const orderKeys = ['clothes', 'accessories', 'toys', 'stationery'];
+        const iconMap = { 'clothes': '👕', 'accessories': '🎀', 'toys': '🧸', 'stationery': '✏️' };
+        const labelMap = { 'clothes': 'ملابس', 'accessories': 'إكسسوارات', 'toys': 'ألعاب', 'stationery': 'قرطاسية' };
+
+        for (const catKey of orderKeys) {
+            const catObj = allCategories.find(c => c.name === catKey) || { name: catKey, label: labelMap[catKey] };
+            const catProducts = products.filter(p => p.category === catKey || (catObj.id && p.category_id === catObj.id));
+
             if (!catProducts.length) continue;
 
-            // Shuffle
-            const shuffled = [...catProducts].sort(() => Math.random() - 0.5);
-            const preview = shuffled.slice(0, 8);
+            const icon = iconMap[catKey] || '🛍️';
+            // Show products (2 visible on screen, user swipes horizontally to see more)
+            const preview = catProducts.slice(0, 10);
 
             html += `
-            <section class="home-section">
+            <section class="home-section" id="section-${catKey}">
                 <div class="home-section-header">
-                    <h2 class="home-section-title">${cat.label}</h2>
-                    <button class="more-btn" onclick="navigate('#/category/${encodeURIComponent(cat.name)}')">المزيد ←</button>
+                    <h2 class="home-section-title">${icon} ${catObj.label}</h2>
+                    <button class="more-btn" onclick="navigate('#/category/${encodeURIComponent(catKey)}')">المزيد ←</button>
                 </div>
                 <div class="carousel-wrapper">
-                    <div class="carousel-track cat-carousel" id="cat-${cat.name}">
+                    <div class="carousel-track cat-carousel" id="cat-${catKey}">
                         ${preview.map(renderProductCard).join('')}
                     </div>
                 </div>
             </section>`;
         }
 
-        // If no categories, show all
         if (!html) {
             html = `<div class="empty-state"><div class="empty-icon">🧺</div><p>لا توجد منتجات حالياً</p></div>`;
         }
@@ -236,6 +252,7 @@ async function renderHome() {
         main.innerHTML = html;
         initCarousels();
     } catch (e) {
+        console.error('Home render error:', e);
         main.innerHTML = `<div class="empty-state"><p>حدث خطأ في التحميل</p></div>`;
     }
 }
@@ -294,52 +311,156 @@ async function filterProducts(catName, field) {
 }
 
 // ============ CATEGORY PAGE ============
+let currentCatProducts = [];
+let currentSubcategories = [];
+let selectedGender = 'all';
+let selectedSubType = 'all';
+
 async function renderCategoryPage(catName) {
     updateActiveCatTab(`#/category/${catName}`);
-    const cat = allCategories.find(c => c.name === catName);
-    const title = cat ? cat.label : catName;
+    const cat = allCategories.find(c => c.name === catName) || {
+        name: catName,
+        label: catName === 'clothes' ? 'ملابس' : catName === 'accessories' ? 'إكسسوارات' : catName === 'toys' ? 'ألعاب' : 'قرطاسية'
+    };
+    const iconMap = { 'clothes': '👕', 'accessories': '🎀', 'toys': '🧸', 'stationery': '✏️' };
+    const icon = iconMap[catName] || '🛍️';
+    const title = `${icon} ${cat.label}`;
     const main = document.getElementById('appMain');
     main.innerHTML = '<div class="loading-spinner">⏳</div>';
 
     try {
-        const products = await apiFetch(`/api/products?category=${catName}`);
-        const subcategories = await apiFetch(`/api/categories/${catName}/subcategories`).catch(() => []);
+        currentCatProducts = await apiFetch(`/api/products?category=${catName}`);
+        currentSubcategories = await apiFetch(`/api/categories/${catName}/subcategories`).catch(() => []);
+
+        // Shuffle products randomly on opening the category page as requested
+        currentCatProducts.sort(() => Math.random() - 0.5);
+
+        selectedGender = 'all';
+        selectedSubType = 'all';
 
         let html = `
         <div class="page-header">
-            <button class="back-btn" onclick="navigate('#/')">← رجوع</button>
+            <button class="back-btn" onclick="navigate('#/')">← الرئيسية</button>
             <h1 class="page-title">${title}</h1>
-        </div>
-        <div class="filter-tabs" id="subTabs">
-            <button class="filter-tab active" onclick="filterBySub(null, '${catName}')">الكل</button>
-            ${subcategories.map(s =>
-            `<button class="filter-tab" onclick="filterBySub('${s.name}', '${catName}')">${s.label}</button>`
-        ).join('')}
-        </div>
+        </div>`;
+
+        if (catName === 'clothes') {
+            // Two-tier filter for clothes: ولادي / بناتي then sub-types
+            html += `
+            <div class="gender-tabs" id="genderTabs">
+                <button class="gender-tab active" onclick="setClothesGender('all')">الكل</button>
+                <button class="gender-tab" onclick="setClothesGender('boys')">👦 ولادي</button>
+                <button class="gender-tab" onclick="setClothesGender('girls')">👧 بناتي</button>
+            </div>
+            <div class="subtype-tabs" id="subtypeTabs" style="display:none;"></div>`;
+        } else if (currentSubcategories.length) {
+            // Subcategories filter for other categories
+            html += `
+            <div class="filter-tabs" id="subTabs">
+                <button class="filter-tab active" onclick="filterNormalSub(null)">الكل</button>
+                ${currentSubcategories.map(s =>
+                    `<button class="filter-tab" onclick="filterNormalSub('${s.name}')">${s.label}</button>`
+                ).join('')}
+            </div>`;
+        }
+
+        html += `
         <div class="products-grid-full" id="catGrid">
-            ${products.length ? products.map(renderProductCard).join('') : '<div class="empty-state"><div class="empty-icon">🧺</div><p>لا توجد منتجات</p></div>'}
+            ${currentCatProducts.length
+                ? currentCatProducts.map(renderProductCard).join('')
+                : '<div class="empty-state"><div class="empty-icon">🧺</div><p>لا توجد منتجات في هذا القسم</p></div>'}
         </div>`;
 
         main.innerHTML = html;
     } catch (e) {
-        main.innerHTML = `<div class="empty-state"><p>حدث خطأ في التحميل</p></div>`;
+        console.error('Category render error:', e);
+        main.innerHTML = `<div class="empty-state"><p>حدث خطأ أثناء تحميل القسم</p></div>`;
     }
 }
 
-async function filterBySub(subName, catName) {
-    document.querySelectorAll('#subTabs .filter-tab').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+function setClothesGender(gender) {
+    selectedGender = gender;
+    selectedSubType = 'all';
 
-    let url = `/api/products?category=${catName}`;
-    if (subName) url += `&subcategory=${subName}`;
+    document.querySelectorAll('#genderTabs .gender-tab').forEach(b => b.classList.remove('active'));
+    if (event?.target) event.target.classList.add('active');
+
+    const subtypeBar = document.getElementById('subtypeTabs');
+    if (!subtypeBar) return;
+
+    if (gender === 'all') {
+        subtypeBar.style.display = 'none';
+        subtypeBar.innerHTML = '';
+        renderFilteredClothes();
+        return;
+    }
+
+    const relevantSubs = currentSubcategories.filter(s => s.gender === gender);
+    subtypeBar.style.display = 'flex';
+    subtypeBar.innerHTML = `
+        <button class="subtype-tab active" onclick="setClothesSubType('all')">الكل</button>
+        ${relevantSubs.map(s =>
+            `<button class="subtype-tab" onclick="setClothesSubType('${s.name}')">${s.label}</button>`
+        ).join('')}
+    `;
+
+    renderFilteredClothes();
+}
+
+function setClothesSubType(subName) {
+    selectedSubType = subName;
+    document.querySelectorAll('#subtypeTabs .subtype-tab').forEach(b => b.classList.remove('active'));
+    if (event?.target) event.target.classList.add('active');
+    renderFilteredClothes();
+}
+
+function renderFilteredClothes() {
+    let filtered = [...currentCatProducts];
+
+    if (selectedGender !== 'all') {
+        filtered = filtered.filter(p => {
+            if (p.gender) return p.gender === selectedGender;
+            const sub = currentSubcategories.find(s => s.id === p.subcategory_id || s.name === p.subcategory);
+            if (sub && sub.gender) return sub.gender === selectedGender;
+            if (selectedGender === 'boys') return (p.name.includes('ولادي') || (p.description && p.description.includes('ولادي')));
+            if (selectedGender === 'girls') return (p.name.includes('بناتي') || (p.description && p.description.includes('بناتي')));
+            return true;
+        });
+    }
+
+    if (selectedSubType !== 'all') {
+        filtered = filtered.filter(p => {
+            const sub = currentSubcategories.find(s => s.id === p.subcategory_id || s.name === p.subcategory);
+            return sub ? sub.name === selectedSubType : false;
+        });
+    }
+
     const grid = document.getElementById('catGrid');
-    grid.innerHTML = '<div class="loading-spinner">⏳</div>';
-    try {
-        const products = await apiFetch(url);
-        grid.innerHTML = products.length
-            ? products.map(renderProductCard).join('')
-            : '<div class="empty-state"><div class="empty-icon">🧺</div><p>لا توجد منتجات</p></div>';
-    } catch (e) { grid.innerHTML = ''; }
+    if (grid) {
+        grid.innerHTML = filtered.length
+            ? filtered.map(renderProductCard).join('')
+            : '<div class="empty-state"><div class="empty-icon">🧺</div><p>لا توجد منتجات مطابقة لهذا الاختيار</p></div>';
+    }
+}
+
+function filterNormalSub(subName) {
+    document.querySelectorAll('#subTabs .filter-tab').forEach(b => b.classList.remove('active'));
+    if (event?.target) event.target.classList.add('active');
+
+    let filtered = [...currentCatProducts];
+    if (subName) {
+        filtered = filtered.filter(p => {
+            const sub = currentSubcategories.find(s => s.id === p.subcategory_id || s.name === p.subcategory);
+            return sub ? sub.name === subName : false;
+        });
+    }
+
+    const grid = document.getElementById('catGrid');
+    if (grid) {
+        grid.innerHTML = filtered.length
+            ? filtered.map(renderProductCard).join('')
+            : '<div class="empty-state"><div class="empty-icon">🧺</div><p>لا توجد منتجات مطابقة</p></div>';
+    }
 }
 
 // ============ SEARCH ============
@@ -404,9 +525,12 @@ function renderProductCard(product) {
         ? Math.round(product.price * (1 - product.discount_percent / 100))
         : product.price;
 
+    const catIconMap = { 'clothes': '👕', 'accessories': '🎀', 'toys': '🧸', 'stationery': '✏️' };
+    const pIcon = catIconMap[product.category] || '🛍️';
+
     const imgTag = product.image
-        ? `<img src="${product.image}" alt="${product.name}" class="product-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="product-placeholder" style="display:none">👕</div>`
-        : `<div class="product-placeholder">👕</div>`;
+        ? `<img src="${product.image}" alt="${product.name}" class="product-img" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="product-placeholder" style="display:none">${pIcon}</div>`
+        : `<div class="product-placeholder">${pIcon}</div>`;
 
     const flags = [
         product.is_new ? `<span class="flag flag-new">✨ جديد</span>` : '',
@@ -651,8 +775,16 @@ function setupLongPress() {
         clearTimeout(pressTimer);
         document.getElementById('pressIndicator').style.display = 'none';
     });
-    // Desktop double-click
+    // Click: if in subpage go home, if already in home open admin modal
+    logo.addEventListener('click', () => {
+        if (location.hash && location.hash !== '#/' && location.hash !== '') {
+            navigate('#/');
+        } else {
+            openAdminModal();
+        }
+    });
     logo.addEventListener('dblclick', () => openAdminModal());
+    logo.addEventListener('contextmenu', e => { e.preventDefault(); openAdminModal(); });
 }
 
 function openAdminModal() {
@@ -669,6 +801,11 @@ function closeAdminModal() {
 async function submitAdminLogin() {
     const pass = document.getElementById('adminPasswordInput').value;
     const errEl = document.getElementById('adminError');
+    if (!pass) {
+        errEl.textContent = 'يرجى كتابة كلمة المرور';
+        errEl.style.display = 'block';
+        return;
+    }
     try {
         const res = await apiFetch('/api/auth/login', {
             method: 'POST',
@@ -677,11 +814,12 @@ async function submitAdminLogin() {
         });
         if (res.token) {
             localStorage.setItem('adminToken', res.token);
+            sessionStorage.setItem('adminToken', res.token);
             closeAdminModal();
             window.location.href = '/admin';
         }
     } catch (e) {
-        errEl.textContent = 'كلمة المرور غير صحيحة';
+        errEl.textContent = e.message || 'كلمة المرور غير صحيحة';
         errEl.style.display = 'block';
     }
 }

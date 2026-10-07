@@ -1378,18 +1378,20 @@ body::after {
    ======================================================== */
 
 /* Override old header for new fixed layout */
+/* Override old header for new fixed layout */
 .header {
   position: fixed !important;
   top: 0; left: 0; right: 0;
   z-index: 100;
-  display: flex !important;
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
   align-items: center !important;
-  justify-content: space-between !important;
   padding: 0.6rem 1rem !important;
   background: linear-gradient(135deg, #7d3c98 0%, #2471a3 100%) !important;
   box-shadow: 0 2px 15px rgba(0,0,0,0.25) !important;
   min-height: 56px;
   overflow: visible !important;
+  box-sizing: border-box !important;
 }
 
 .header::before { display: none; }
@@ -1414,14 +1416,57 @@ body::after {
 .header-icon-btn:hover { background: rgba(255,255,255,0.3); }
 .header-icon-btn:active { transform: scale(0.9); }
 
-/* Logo */
+#searchBtn {
+  justify-self: start !important;
+}
+
+/* Cart Button inside header — override old absolute positioning */
+.header .cart-btn {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  justify-self: end !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: rgba(255,255,255,0.15) !important;
+  border: none !important;
+}
+
+.header .cart-btn:hover {
+  background: rgba(255,255,255,0.3) !important;
+}
+
+.header .cart-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  background: var(--pink);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* Logo — EXACTLY CENTERED IN HEADER */
 .logo-wrapper {
-  display: flex !important;
+  justify-self: center !important;
+  text-align: center !important;
+  display: inline-flex !important;
   flex-direction: row !important;
   align-items: center !important;
+  justify-content: center !important;
   gap: 0.4rem;
   cursor: pointer;
   user-select: none;
+  margin: 0 auto !important;
 }
 
 .logo-moon {
@@ -1584,33 +1629,105 @@ body { padding-top: 56px; }
 
 .cat-tabs-row {
   display: flex;
-  gap: 0;
+  justify-content: space-around;
+  gap: 8px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 0 0.5rem;
+  padding: 0.6rem 0.8rem;
 }
 .cat-tabs-row::-webkit-scrollbar { display: none; }
 
 .cat-tab {
-  flex-shrink: 0;
-  padding: 0.75rem 1rem;
-  border: none;
-  background: transparent;
+  flex: 1;
+  min-width: 78px;
+  max-width: 130px;
+  padding: 0.55rem 0.6rem;
+  border: 1.5px solid rgba(155,89,182,0.2);
+  border-radius: 14px;
+  background: #faf5ff;
   font-family: 'Tajawal', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-light);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
   cursor: pointer;
-  border-bottom: 3px solid transparent;
   transition: var(--transition);
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   -webkit-tap-highlight-color: transparent;
 }
-.cat-tab:hover { color: var(--purple); }
-.cat-tab.active {
-  color: var(--purple);
-  border-bottom-color: var(--purple);
-  font-weight: 800;
+.cat-tab:hover, .cat-tab.active {
+  background: linear-gradient(135deg, #7d3c98, #2471a3);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(125, 60, 152, 0.3);
+  transform: translateY(-1px);
+}
+
+/* ============ TWO-TIER FILTER TABS ============ */
+.gender-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem 0.3rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.gender-tabs::-webkit-scrollbar { display: none; }
+
+.gender-tab {
+  padding: 0.5rem 1.4rem;
+  border-radius: 20px;
+  border: 2px solid rgba(155,89,182,0.25);
+  background: white;
+  color: #475569;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.gender-tab:hover, .gender-tab.active {
+  background: linear-gradient(135deg, #9b59b6, #3498db);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.25);
+}
+
+.subtype-tabs {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.3rem 1rem 0.7rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.subtype-tabs::-webkit-scrollbar { display: none; }
+
+.subtype-tab {
+  padding: 0.35rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+  -webkit-tap-highlight-color: transparent;
+}
+.subtype-tab:hover {
+  background: #e2e8f0;
+}
+.subtype-tab.active {
+  background: #7d3c98;
+  color: white;
+  border-color: #7d3c98;
+  box-shadow: 0 2px 8px rgba(125,60,152,0.25);
 }
 
 /* ============ APP MAIN ============ */

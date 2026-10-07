@@ -28,6 +28,30 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/categories/:name/subcategories
+router.get('/:name/subcategories', async (req, res) => {
+    try {
+        const catName = req.params.name;
+        let cat;
+        if (isMongo()) {
+            cat = await models.Category.findOne({
+                $or: [{ name: catName }, { id: isNaN(catName) ? -1 : parseInt(catName) }]
+            }).lean();
+            if (!cat) return res.json([]);
+            const subs = await models.Subcategory.find({ category_id: cat.id }).lean();
+            return res.json(subs);
+        } else {
+            cat = db.get('categories').find(c => c.name === catName || c.id === parseInt(catName)).value();
+            if (!cat) return res.json([]);
+            const subs = db.get('subcategories').filter({ category_id: cat.id }).value();
+            return res.json(subs);
+        }
+    } catch (err) {
+        console.error('Subcategories by cat error:', err);
+        res.status(500).json({ error: 'خطأ في جلب الفئات الفرعية' });
+    }
+});
+
 // POST /api/categories (Create or Update)
 router.post('/', verifyAdmin, async (req, res) => {
     try {

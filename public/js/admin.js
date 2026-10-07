@@ -1,5 +1,5 @@
 const API = '';
-let adminToken = sessionStorage.getItem('adminToken') || '';
+let adminToken = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken') || '';
 let allProducts = [];
 let allOrders = [];
 let allCategories = [];
@@ -7,17 +7,58 @@ let currentProductId = null;
 let currentOrderFilter = 'all';
 
 // ============ AUTH GUARD ============
-if (!adminToken) {
+function checkAdminAuth() {
+    adminToken = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken') || '';
+    const loginEl = document.getElementById('adminLoginScreen');
+    if (!adminToken) {
+        if (loginEl) loginEl.style.display = 'flex';
+        return false;
+    }
+    if (loginEl) loginEl.style.display = 'none';
+    return true;
+}
+
+async function doAdminLogin(e) {
+    if (e) e.preventDefault();
+    const pass = document.getElementById('adminScreenPass').value;
+    const errEl = document.getElementById('adminScreenErr');
+    try {
+        const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: 'admin', password: pass })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'كلمة المرور غير صحيحة');
+        localStorage.setItem('adminToken', data.token);
+        sessionStorage.setItem('adminToken', data.token);
+        adminToken = data.token;
+        document.getElementById('adminLoginScreen').style.display = 'none';
+        await initAdminDashboard();
+    } catch (err) {
+        errEl.textContent = err.message;
+        errEl.style.display = 'block';
+    }
+}
+
+function logout() {
+    localStorage.removeItem('adminToken');
+    sessionStorage.removeItem('adminToken');
     window.location.href = '/';
 }
 
 // ============ INIT ============
 document.addEventListener('DOMContentLoaded', async () => {
+    if (!checkAdminAuth()) return;
+    await initAdminDashboard();
+});
+
+async function initAdminDashboard() {
     setCurrentDate();
     await loadCategories();
     await loadStats();
     showPage('dashboard');
-});
+}
 
 function setCurrentDate() {
     const el = document.getElementById('currentDate');
@@ -67,11 +108,6 @@ function toggleSidebar() {
 function closeMobileSidebar() {
     document.querySelector('.sidebar').classList.remove('mobile-open');
     document.querySelector('.sidebar-overlay').classList.remove('open');
-}
-
-function logout() {
-    sessionStorage.removeItem('adminToken');
-    window.location.href = '/';
 }
 
 // ============ LOAD STATS ============
