@@ -13,6 +13,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 const Admin = require('./models/Admin');
 const Category = require('./models/Category');
 const Subcategory = require('./models/Subcategory');
+const ItemType = require('./models/ItemType');
 const Product = require('./models/Product');
 const Order = require('./models/Order');
 const Banner = require('./models/Banner');
@@ -37,7 +38,7 @@ async function initializeDatabase() {
     if (mongoUri) {
         try {
             console.log('⏳ Connecting to MongoDB Atlas...');
-            await mongoose.connect(mongoUri);
+            await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
             isMongoConnected = true;
             console.log('✅ Connected to MongoDB Atlas successfully!');
 
@@ -65,6 +66,7 @@ async function initializeDatabase() {
         admins: [],
         categories: [],
         subcategories: [],
+        item_types: [],
         products: [],
         orders: [],
         order_items: [],
@@ -141,6 +143,7 @@ module.exports = {
         Admin,
         Category,
         Subcategory,
+        ItemType,
         Product,
         Order,
         Banner,

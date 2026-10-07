@@ -48,23 +48,30 @@ async function enrichProduct(p) {
     if (isMongo()) {
         const cat = p.category_id ? await models.Category.findOne({ id: p.category_id }).lean() : null;
         const sub = p.subcategory_id ? await models.Subcategory.findOne({ id: p.subcategory_id }).lean() : null;
+        const itype = p.item_type_id ? await models.ItemType.findOne({ id: p.item_type_id }).lean() : null;
         return {
             ...p,
             category: cat?.name || '',
             category_label: cat?.label || '',
             subcategory: sub?.name || '',
             subcategory_label: sub?.label || '',
+            item_type: itype?.name || '',
+            item_type_label: itype?.label || '',
             gender: sub?.gender || p.gender || null
         };
     } else {
+        db.read();
         const cat = db.get('categories').find({ id: p.category_id }).value();
         const sub = db.get('subcategories').find({ id: p.subcategory_id }).value();
+        const itype = db.get('item_types').find({ id: p.item_type_id }).value();
         return {
             ...p,
             category: cat?.name || '',
             category_label: cat?.label || '',
             subcategory: sub?.name || '',
             subcategory_label: sub?.label || '',
+            item_type: itype?.name || '',
+            item_type_label: itype?.label || '',
             gender: sub?.gender || p.gender || null
         };
     }
@@ -165,7 +172,7 @@ router.get('/:id', async (req, res) => {
 // POST /api/products (admin only)
 router.post('/', verifyAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { name, description, price, category_id, subcategory_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
+        const { name, description, price, category_id, subcategory_id, item_type_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
         if (!name || !price) return res.status(400).json({ error: 'الاسم والسعر مطلوبان' });
 
         const image = await handleImageUpload(req.file, image_url);
@@ -177,6 +184,7 @@ router.post('/', verifyAdmin, upload.single('image'), async (req, res) => {
             image,
             category_id: category_id ? parseInt(category_id) : null,
             subcategory_id: subcategory_id ? parseInt(subcategory_id) : null,
+            item_type_id: item_type_id ? parseInt(item_type_id) : null,
             is_new: is_new === 'true' || is_new === '1',
             is_offer: is_offer === 'true' || is_offer === '1',
             discount_percent: parseInt(discount_percent) || 0,
@@ -217,7 +225,7 @@ router.put('/:id', verifyAdmin, upload.single('image'), async (req, res) => {
 
         if (!existing) return res.status(404).json({ error: 'المنتج غير موجود' });
 
-        const { name, description, price, category_id, subcategory_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
+        const { name, description, price, category_id, subcategory_id, item_type_id, is_new, is_offer, discount_percent, is_low_stock, stock_qty, image_url } = req.body;
         
         let image = existing.image;
         if (req.file) {
@@ -231,8 +239,9 @@ router.put('/:id', verifyAdmin, upload.single('image'), async (req, res) => {
             description: description !== undefined ? description : existing.description,
             price: price ? parseInt(price) : existing.price,
             image,
-            category_id: category_id ? parseInt(category_id) : existing.category_id,
-            subcategory_id: subcategory_id ? parseInt(subcategory_id) : existing.subcategory_id,
+            category_id: category_id !== undefined ? (category_id ? parseInt(category_id) : null) : existing.category_id,
+            subcategory_id: subcategory_id !== undefined ? (subcategory_id ? parseInt(subcategory_id) : null) : existing.subcategory_id,
+            item_type_id: item_type_id !== undefined ? (item_type_id ? parseInt(item_type_id) : null) : existing.item_type_id,
             is_new: is_new === 'true' || is_new === '1' ? true : (is_new === 'false' || is_new === '0' ? false : existing.is_new),
             is_offer: is_offer === 'true' || is_offer === '1' ? true : (is_offer === 'false' || is_offer === '0' ? false : existing.is_offer),
             discount_percent: discount_percent !== undefined ? parseInt(discount_percent) : existing.discount_percent,

@@ -8,6 +8,7 @@ const productSchema = new mongoose.Schema({
     image: { type: String, default: null },
     category_id: { type: Number, default: null },
     subcategory_id: { type: Number, default: null },
+    item_type_id: { type: Number, default: null },
     is_new: { type: Boolean, default: false },
     is_offer: { type: Boolean, default: false },
     discount_percent: { type: Number, default: 0 },

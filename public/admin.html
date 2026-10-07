@@ -194,17 +194,23 @@
                                 value="10" />
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                         <div class="form-group">
-                            <label>القسم الرئيسي</label>
+                            <label>1. القسم الرئيسي *</label>
                             <select id="pCategory" class="form-input" onchange="updateSubcategoryOptions(this.value)">
-                                <option value="">-- اختر القسم --</option>
+                                <option value="">-- اختر القسم الرئيسي --</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>القسم الفرعي</label>
-                            <select id="pSubcategory" class="form-input">
-                                <option value="">-- اختر الفئة --</option>
+                            <label>2. الصنف (ولادي / بناتي...)</label>
+                            <select id="pSubcategory" class="form-input" onchange="updateItemTypeOptions(this.value)">
+                                <option value="">-- اختر الصنف --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>3. النوع الفرعي (تراك / شورت...)</label>
+                            <select id="pItemType" class="form-input">
+                                <option value="">-- اختر النوع --</option>
                             </select>
                         </div>
                     </div>
@@ -325,7 +331,29 @@
         </div>
         <div class="modal-actions">
             <button class="btn btn-ghost" onclick="closeSubCategoryModal()">إلغاء</button>
-            <button class="btn btn-primary" onclick="saveSubCategory()">حفظ القسم الفرعي</button>
+            <button class="btn btn-primary" onclick="saveSubCategory()">حفظ الصنف</button>
+        </div>
+    </div>
+
+    <!-- ITEM TYPE MODAL (Level 3: النوع الفرعي مثل تراك، جينز، شورت) -->
+    <div class="modal-overlay" id="itemTypeModalOverlay" onclick="closeItemTypeModal()"></div>
+    <div class="modal" id="itemTypeModal">
+        <div class="modal-header">
+            <h2 id="itemTypeModalTitle">إضافة نوع فرعي</h2>
+            <button class="modal-close" onclick="closeItemTypeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="itemTypeId" />
+            <input type="hidden" id="itemTypeCatId" />
+            <input type="hidden" id="itemTypeSubId" />
+            <div class="form-group">
+                <label>اسم النوع الفرعي *</label>
+                <input type="text" id="itemTypeLabel" class="form-input" placeholder="مثال: تراك، جينز، شورت، فستان، ساعات..." required />
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeItemTypeModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="saveItemType()">حفظ النوع الفرعي</button>
         </div>
     </div>
 

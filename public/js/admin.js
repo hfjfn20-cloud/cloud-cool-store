@@ -141,14 +141,43 @@ function populateCategorySelect() {
     });
 }
 
-function updateSubcategoryOptions(catId) {
+function updateSubcategoryOptions(catId, selectedSubId = null) {
     const sel = document.getElementById('pSubcategory');
-    sel.innerHTML = '<option value="">-- اختر الفئة --</option>';
+    sel.innerHTML = '<option value="">-- اختر الصنف --</option>';
+    const itemSel = document.getElementById('pItemType');
+    if (itemSel) itemSel.innerHTML = '<option value="">-- اختر النوع الفرعي --</option>';
     if (!catId) return;
-    const cat = allCategories.find(c => c.id == catId);
+    const cat = allCategories.find(c => String(c.id) === String(catId));
     if (cat?.subcategories) {
         cat.subcategories.forEach(sub => {
-            sel.innerHTML += `<option value="${sub.id}">${sub.label}</option>`;
+            const isSel = selectedSubId && String(sub.id) === String(selectedSubId);
+            sel.innerHTML += `<option value="${sub.id}" ${isSel ? 'selected' : ''}>${sub.label}</option>`;
+        });
+    }
+    if (selectedSubId) {
+        updateItemTypeOptions(selectedSubId);
+    }
+}
+
+function updateItemTypeOptions(subId, selectedItemTypeId = null) {
+    const sel = document.getElementById('pItemType');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">-- اختر النوع الفرعي --</option>';
+    if (!subId) return;
+
+    let foundSub = null;
+    for (const cat of allCategories) {
+        const sub = (cat.subcategories || []).find(s => String(s.id) === String(subId));
+        if (sub) {
+            foundSub = sub;
+            break;
+        }
+    }
+
+    if (foundSub?.item_types) {
+        foundSub.item_types.forEach(it => {
+            const isSel = selectedItemTypeId && String(it.id) === String(selectedItemTypeId);
+            sel.innerHTML += `<option value="${it.id}" ${isSel ? 'selected' : ''}>${it.label}</option>`;
         });
     }
 }
@@ -183,7 +212,11 @@ function renderProductsTable(products) {
         <td>${i + 1}</td>
         <td>${imgEl}</td>
         <td><strong>${p.name}</strong>${p.description ? `<div style="font-size:0.78rem;color:#7f8c8d;margin-top:0.2rem">${p.description.substring(0, 50)}${p.description.length > 50 ? '...' : ''}</div>` : ''}</td>
-        <td><span style="font-size:0.85rem">${p.category_label || '—'}</span>${p.subcategory_label ? `<br><span style="font-size:0.78rem;color:#7f8c8d">${p.subcategory_label}</span>` : ''}</td>
+        <td>
+            <span style="font-size:0.85rem">${p.category_label || '—'}</span>
+            ${p.subcategory_label ? `<br><span style="font-size:0.78rem;color:#7f8c8d">${p.subcategory_label}</span>` : ''}
+            ${p.item_type_label ? `<br><span style="font-size:0.75rem;color:#9b59b6;font-weight:600">🏷️ ${p.item_type_label}</span>` : ''}
+        </td>
         <td><strong style="color:#9b59b6">${p.price.toLocaleString('ar-IQ')} د.ع</strong></td>
         <td>${tags}</td>
         <td>
@@ -199,7 +232,7 @@ function renderProductsTable(products) {
 
 function filterProductsTable(q) {
     const filtered = allProducts.filter(p =>
-        p.name.includes(q) || (p.description || '').includes(q) || (p.category_label || '').includes(q)
+        p.name.includes(q) || (p.description || '').includes(q) || (p.category_label || '').includes(q) || (p.subcategory_label || '').includes(q) || (p.item_type_label || '').includes(q)
     );
     renderProductsTable(filtered);
 }
@@ -222,8 +255,10 @@ function openProductModal(id = null) {
         document.getElementById('pPrice').value = p.price;
         document.getElementById('pQty').value = p.stock_qty;
         document.getElementById('pCategory').value = p.category_id || '';
-        updateSubcategoryOptions(p.category_id);
+        updateSubcategoryOptions(p.category_id, p.subcategory_id);
         document.getElementById('pSubcategory').value = p.subcategory_id || '';
+        updateItemTypeOptions(p.subcategory_id, p.item_type_id);
+        document.getElementById('pItemType').value = p.item_type_id || '';
         document.getElementById('pIsNew').checked = !!p.is_new;
         document.getElementById('pIsOffer').checked = !!p.is_offer;
         document.getElementById('pIsLow').checked = !!p.is_low_stock;
@@ -253,7 +288,8 @@ function resetProductForm() {
     document.getElementById('imagePreview').style.display = 'none';
     document.getElementById('imageUploadPlaceholder').style.display = 'flex';
     document.getElementById('discountField').style.display = 'none';
-    document.getElementById('pSubcategory').innerHTML = '<option value="">-- اختر الفئة --</option>';
+    document.getElementById('pSubcategory').innerHTML = '<option value="">-- اختر الصنف --</option>';
+    document.getElementById('pItemType').innerHTML = '<option value="">-- اختر النوع الفرعي --</option>';
     currentProductId = null;
 }
 
@@ -299,6 +335,7 @@ async function submitProduct(e) {
         formData.append('stock_qty', document.getElementById('pQty').value);
         formData.append('category_id', document.getElementById('pCategory').value);
         formData.append('subcategory_id', document.getElementById('pSubcategory').value);
+        formData.append('item_type_id', document.getElementById('pItemType').value || '');
         formData.append('is_new', document.getElementById('pIsNew').checked ? '1' : '0');
         formData.append('is_offer', document.getElementById('pIsOffer').checked ? '1' : '0');
         formData.append('discount_percent', document.getElementById('pDiscount').value || '0');
@@ -486,33 +523,57 @@ function renderSettings() {
     container.innerHTML = allCategories.map(cat => `
         <div class="category-card">
             <div class="category-header">
-                <span class="category-title">${cat.label}</span>
+                <div class="category-header-title">
+                    <span style="font-size:1.3rem">${cat.icon || '📁'}</span>
+                    <span class="category-title">${cat.label}</span>
+                    <span class="cat-count">${(cat.subcategories || []).length} أصناف</span>
+                </div>
                 <div class="category-actions">
-                    <button class="btn-icon-sm" onclick="openCategoryModal('${cat.id}', '${cat.label}')" title="تعديل">✏️</button>
-                    <button class="btn-icon-sm" onclick="deleteCategory('${cat.id}')" title="حذف">🗑️</button>
+                    <button class="btn-icon-sm" onclick="openCategoryModal('${cat.id}', '${escStr(cat.label)}')" title="تعديل القسم الرئيسي">✏️</button>
+                    <button class="btn-icon-sm" onclick="deleteCategory('${cat.id}')" title="حذف القسم">🗑️</button>
                 </div>
             </div>
-            <div class="subcategory-list">
-                ${cat.subcategories.map(sub => `
-                    <div class="subcategory-item">
-                        <span>${sub.label}</span>
-                        <div class="subcategory-actions">
-                            <button class="btn-icon-sm" onclick="openSubCategoryModal('${cat.id}', '${sub.id}', '${sub.label}')">✏️</button>
-                            <button class="btn-icon-sm" onclick="deleteSubCategory('${sub.id}')">🗑️</button>
+
+            <div class="subcategories-tree">
+                ${(cat.subcategories || []).map(sub => `
+                    <div class="subcategory-branch">
+                        <div class="subcategory-branch-header">
+                            <div class="sub-title-wrap">
+                                <span class="sub-bullet">📂</span>
+                                <strong class="sub-title">${sub.label}</strong>
+                            </div>
+                            <div class="subcategory-branch-actions">
+                                <button class="btn-xs btn-add-item" onclick="openItemTypeModal('${cat.id}', '${sub.id}')" title="إضافة نوع فرعي">+ نوع فرعي</button>
+                                <button class="btn-icon-sm" onclick="openSubCategoryModal('${cat.id}', '${sub.id}', '${escStr(sub.label)}')" title="تعديل الصنف">✏️</button>
+                                <button class="btn-icon-sm" onclick="deleteSubCategory('${sub.id}')" title="حذف الصنف">🗑️</button>
+                            </div>
+                        </div>
+
+                        <div class="item-types-wrapper">
+                            <div class="item-types-chips">
+                                ${(sub.item_types && sub.item_types.length) ? sub.item_types.map(it => `
+                                    <span class="item-type-chip">
+                                        <span class="it-label">${it.label}</span>
+                                        <button class="it-btn" onclick="openItemTypeModal('${cat.id}', '${sub.id}', '${it.id}', '${escStr(it.label)}')" title="تعديل">✏️</button>
+                                        <button class="it-btn del" onclick="deleteItemType('${it.id}')" title="حذف">✕</button>
+                                    </span>
+                                `).join('') : `<span class="empty-chips">لا توجد أنواع فرعية (اضغط + نوع فرعي)</span>`}
+                            </div>
                         </div>
                     </div>
                 `).join('')}
             </div>
-            <button class="add-sub-btn" onclick="openSubCategoryModal('${cat.id}')">➕ إضافة قسم فرعي</button>
+
+            <button class="add-sub-btn" onclick="openSubCategoryModal('${cat.id}')">➕ إضافة صنف ثانوي جديد</button>
         </div>
     `).join('');
 }
 
-// Category Modals
+// Category Modals (Level 1)
 function openCategoryModal(id = null, label = '') {
     document.getElementById('catId').value = id || '';
     document.getElementById('catLabel').value = label;
-    document.getElementById('categoryModalTitle').textContent = id ? 'تعديل القسم' : 'إضافة قسم جديد';
+    document.getElementById('categoryModalTitle').textContent = id ? 'تعديل القسم الرئيسي' : 'إضافة قسم رئيسي جديد';
     document.getElementById('categoryModalOverlay').classList.add('open');
     document.getElementById('categoryModal').classList.add('open');
 }
@@ -534,28 +595,28 @@ async function saveCategory() {
         });
         showToast('✅ تم الحفظ بنجاح');
         closeCategoryModal();
-        loadCategories();
-        loadSettingsData();
+        await loadCategories();
+        renderSettings();
     } catch (e) { showToast(e.message, true); }
 }
 
 async function deleteCategory(id) {
-    showConfirmModal('هل أنت متأكد من حذف هذا القسم وجميع أقسامه الفرعية؟', async () => {
+    showConfirmModal('هل أنت متأكد من حذف هذا القسم وجميع فروعه؟', async () => {
         try {
             await apiFetch(`/api/categories/${id}`, { method: 'DELETE' });
             showToast('✅ تم الحذف بنجاح');
-            loadCategories();
-            loadSettingsData();
+            await loadCategories();
+            renderSettings();
         } catch (e) { showToast(e.message, true); }
     });
 }
 
-// Subcategory Modals
+// Subcategory Modals (Level 2)
 function openSubCategoryModal(parentId, id = null, label = '') {
     document.getElementById('subCatParentId').value = parentId;
     document.getElementById('subCatId').value = id || '';
     document.getElementById('subCatLabel').value = label;
-    document.getElementById('subCategoryModalTitle').textContent = id ? 'تعديل القسم الفرعي' : 'إضافة قسم فرعي جديد';
+    document.getElementById('subCategoryModalTitle').textContent = id ? 'تعديل الصنف الثانوي' : 'إضافة صنف ثانوي جديد';
     document.getElementById('subCategoryModalOverlay').classList.add('open');
     document.getElementById('subCategoryModal').classList.add('open');
 }
@@ -569,7 +630,7 @@ async function saveSubCategory() {
     const id = document.getElementById('subCatId').value;
     const category_id = document.getElementById('subCatParentId').value;
     const label = document.getElementById('subCatLabel').value.trim();
-    if (!label) return showToast('يرجى إدخال اسم القسم الفرعي', true);
+    if (!label) return showToast('يرجى إدخال اسم الصنف', true);
 
     try {
         await apiFetch('/api/categories/subcategory', {
@@ -578,18 +639,64 @@ async function saveSubCategory() {
         });
         showToast('✅ تم الحفظ بنجاح');
         closeSubCategoryModal();
-        loadCategories();
-        loadSettingsData();
+        await loadCategories();
+        renderSettings();
     } catch (e) { showToast(e.message, true); }
 }
 
 async function deleteSubCategory(id) {
-    showConfirmModal('هل أنت متأكد من حذف هذا القسم الفرعي؟', async () => {
+    showConfirmModal('هل أنت متأكد من حذف هذا الصنف الفرعي؟', async () => {
         try {
             await apiFetch(`/api/categories/subcategory/${id}`, { method: 'DELETE' });
             showToast('✅ تم الحذف بنجاح');
-            loadCategories();
-            loadSettingsData();
+            await loadCategories();
+            renderSettings();
+        } catch (e) { showToast(e.message, true); }
+    });
+}
+
+// ItemType Modals (Level 3: الأنواع الفرعية مثل تراك، جينز، شورت)
+function openItemTypeModal(catId, subId, id = null, label = '') {
+    document.getElementById('itemTypeCatId').value = catId;
+    document.getElementById('itemTypeSubId').value = subId;
+    document.getElementById('itemTypeId').value = id || '';
+    document.getElementById('itemTypeLabel').value = label;
+    document.getElementById('itemTypeModalTitle').textContent = id ? 'تعديل النوع الفرعي' : 'إضافة نوع فرعي جديد';
+    document.getElementById('itemTypeModalOverlay').classList.add('open');
+    document.getElementById('itemTypeModal').classList.add('open');
+}
+
+function closeItemTypeModal() {
+    document.getElementById('itemTypeModalOverlay').classList.remove('open');
+    document.getElementById('itemTypeModal').classList.remove('open');
+}
+
+async function saveItemType() {
+    const id = document.getElementById('itemTypeId').value;
+    const category_id = document.getElementById('itemTypeCatId').value;
+    const subcategory_id = document.getElementById('itemTypeSubId').value;
+    const label = document.getElementById('itemTypeLabel').value.trim();
+    if (!label) return showToast('يرجى إدخال اسم النوع الفرعي', true);
+
+    try {
+        await apiFetch('/api/categories/item-type', {
+            method: 'POST',
+            body: JSON.stringify({ id, category_id, subcategory_id, label })
+        });
+        showToast('✅ تم حفظ النوع الفرعي بنجاح');
+        closeItemTypeModal();
+        await loadCategories();
+        renderSettings();
+    } catch (e) { showToast(e.message, true); }
+}
+
+async function deleteItemType(id) {
+    showConfirmModal('هل أنت متأكد من حذف هذا النوع الفرعي؟', async () => {
+        try {
+            await apiFetch(`/api/categories/item-type/${id}`, { method: 'DELETE' });
+            showToast('✅ تم الحذف بنجاح');
+            await loadCategories();
+            renderSettings();
         } catch (e) { showToast(e.message, true); }
     });
 }
