@@ -1270,14 +1270,16 @@ select.status-select {
 
 /* ============ RESPONSIVE / MOBILE ============ */
 @media (max-width: 768px) {
-    /* Hide sidebar by default on mobile */
+    /* Sidebar: RTL-safe hide using right offset */
     .sidebar {
-        transform: translateX(110%);
-        transition: transform 0.3s ease;
+        right: -280px;
+        transition: right 0.3s ease;
         z-index: 200;
+        box-shadow: none;
     }
     .sidebar.open {
-        transform: translateX(0);
+        right: 0;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.3);
     }
 
     /* Show mobile topbar */
@@ -1289,13 +1291,13 @@ select.status-select {
     .main {
         margin-right: 0;
         padding: 1rem;
-        padding-top: 5rem; /* space for fixed topbar */
+        padding-top: 5rem;
         min-height: 100vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 
-    /* Show sidebar overlay */
+    /* Show sidebar overlay when open */
     .sidebar-overlay.open {
         display: block;
     }
@@ -1312,7 +1314,7 @@ select.status-select {
         align-items: flex-start;
     }
 
-    /* Stats grid single column */
+    /* Stats grid two columns on mobile */
     .stats-grid {
         grid-template-columns: 1fr 1fr;
     }
@@ -1323,36 +1325,12 @@ select.status-select {
         padding: 0.75rem;
     }
 
-    /* Form columns */
+    /* Form rows stack on mobile */
     .form-row {
         flex-direction: column;
     }
 
-    /* Modal full screen on mobile */
-    .modal {
-        align-items: flex-end;
-    }
-    .modal-content {
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 20px 20px 0 0;
-        max-height: 92vh;
-    }
-    .modal-body {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        padding-bottom: 1rem;
-    }
-    .modal-footer {
-        position: sticky;
-        bottom: 0;
-        background: white;
-        padding: 0.75rem 1rem;
-        border-top: 1px solid #f1f5f9;
-        z-index: 10;
-    }
-
-    /* Category cards */
+    /* Category cards single column */
     .category-cards-grid {
         grid-template-columns: 1fr;
     }
