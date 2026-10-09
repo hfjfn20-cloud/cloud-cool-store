@@ -148,4 +148,25 @@ router.put('/:id/status', verifyAdmin, async (req, res) => {
     }
 });
 
+// DELETE /api/orders/:id (admin only)
+router.delete('/:id', verifyAdmin, async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isMongo()) {
+            const deleted = await models.Order.findOneAndDelete({ id });
+            if (!deleted) return res.status(404).json({ error: 'الطلب غير موجود' });
+            return res.json({ message: 'تم حذف الطلب بنجاح' });
+        } else {
+            const order = db.get('orders').find({ id }).value();
+            if (!order) return res.status(404).json({ error: 'الطلب غير موجود' });
+            db.get('orders').remove({ id }).write();
+            db.get('order_items').remove({ order_id: id }).write();
+            return res.json({ message: 'تم حذف الطلب بنجاح' });
+        }
+    } catch (err) {
+        console.error('Order DELETE error:', err);
+        res.status(500).json({ error: 'حدث خطأ أثناء حذف الطلب' });
+    }
+});
+
 module.exports = router;

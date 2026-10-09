@@ -416,28 +416,57 @@ function closeConfirmModal() {
 }
 
 // ============ ORDERS ============
+let orderSearchQuery = '';
+
 async function loadOrders() {
     try {
         allOrders = await apiFetch('/api/orders');
+        updateOrdersNavBadge();
         renderOrders();
     } catch (e) { showToast('خطأ في تحميل الطلبات', true); }
 }
 
+function updateOrdersNavBadge() {
+    const badge = document.getElementById('ordersNavBadge');
+    if (!badge) return;
+    const newCount = allOrders.filter(o => o.status === 'جديد').length;
+    if (newCount > 0) {
+        badge.textContent = newCount;
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+    }
+}
+
 function filterOrders(status, btn) {
     currentOrderFilter = status;
-    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#orderFilterTabs .filter-tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderOrders();
 }
 
+function filterOrdersSearch(val) {
+    orderSearchQuery = (val || '').trim().toLowerCase();
+    renderOrders();
+}
+
 function renderOrders() {
-    const filtered = currentOrderFilter === 'all'
+    let filtered = currentOrderFilter === 'all'
         ? allOrders
         : allOrders.filter(o => o.status === currentOrderFilter);
 
+    if (orderSearchQuery) {
+        filtered = filtered.filter(o =>
+            (o.customer_name && o.customer_name.toLowerCase().includes(orderSearchQuery)) ||
+            (o.customer_phone && o.customer_phone.includes(orderSearchQuery)) ||
+            (o.customer_address && o.customer_address.toLowerCase().includes(orderSearchQuery)) ||
+            (o.id && o.id.toString().includes(orderSearchQuery))
+        );
+    }
+
     const container = document.getElementById('ordersList');
     if (!filtered.length) {
-        container.innerHTML = `<div style="text-align:center;padding:3rem;color:#7f8c8d"><div style="font-size:3rem">📭</div><p>لا توجد طلبات</p></div>`;
+        container.innerHTML = `<div style="text-align:center;padding:3rem;color:#7f8c8d;background:white;border-radius:16px;box-shadow:var(--shadow);"><div style="font-size:3rem">📭</div><p style="font-size:1.1rem;font-weight:700;margin-top:0.5rem">لا توجد طلبات مطابقة</p></div>`;
         return;
     }
 
@@ -451,8 +480,8 @@ function renderOrders() {
             `<div class="order-item-row">📌 ${item.product_name} <span>× ${item.quantity} — ${(item.product_price * item.quantity).toLocaleString('ar-IQ')} د.ع</span></div>`
         ).join('');
 
-        const waMsg = encodeURIComponent(`مرحباً ${order.customer_name}، بخصوص طلبكم رقم #${order.id} من متجر Cloud Cool. إجمالي الطلب: ${order.total.toLocaleString('ar-IQ')} دينار.`);
-        const waPhoneRaw = order.customer_phone.replace(/\D/g, '');
+        const waMsg = encodeURIComponent(`مرحباً ${order.customer_name}، بخصوص طلبكم رقم #${order.id} من متجر بيبي مون 🌙👶. إجمالي الطلب: ${order.total.toLocaleString('ar-IQ')} دينار.`);
+        const waPhoneRaw = (order.customer_phone || '').replace(/\D/g, '');
         let waPhone = waPhoneRaw;
         // Handle Iraqi numbers starting with 07 or 7
         if (waPhone.startsWith('07')) {
@@ -470,8 +499,8 @@ function renderOrders() {
           <div>
             <div class="order-id">طلب رقم #${order.id}</div>
             <div class="order-name">👤 ${order.customer_name}</div>
-            <div class="order-phone">📱 ${order.customer_phone}</div>
-            ${order.customer_address ? `<div class="order-address">📍 ${order.customer_address}</div>` : ''}
+            <div class="order-phone">📱 <a href="tel:${order.customer_phone}">${order.customer_phone}</a></div>
+            ${order.customer_address ? `<div class="order-address">📍 ${order.customer_address}</div>` : '<div class="order-address" style="color:#94a3b8">📍 لم يحدد عنوان</div>'}
           </div>
           <div class="order-status">
             <span class="status-badge ${statusClass}">${order.status}</span>
@@ -481,7 +510,7 @@ function renderOrders() {
         <div class="order-bottom">
           <div>
             <div class="order-total">المجموع: ${order.total.toLocaleString('ar-IQ')} د.ع</div>
-            <div class="order-date">${date}</div>
+            <div class="order-date">🕒 ${date}</div>
           </div>
           <div class="order-actions">
             <select class="status-select" onchange="updateOrderStatus(${order.id}, this.value)">
@@ -489,9 +518,12 @@ function renderOrders() {
             `<option value="${s}" ${s === order.status ? 'selected' : ''}>${s}</option>`
         ).join('')}
             </select>
-            <a href="${waLink}" target="_blank" class="btn btn-sm btn-wa">
+            <a href="${waLink}" target="_blank" class="btn btn-sm btn-wa" title="محادثة الزبون على الواتساب">
               💬 واتساب
             </a>
+            <button class="btn btn-sm btn-danger" onclick="deleteOrderConfirm(${order.id}, '${escStr(order.customer_name)}')">
+              🗑️ حذف
+            </button>
           </div>
         </div>
       </div>
@@ -506,13 +538,34 @@ async function updateOrderStatus(orderId, newStatus) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
-        // Update locally
         const order = allOrders.find(o => o.id === orderId);
         if (order) order.status = newStatus;
+        updateOrdersNavBadge();
         renderOrders();
         await loadStats();
         showToast('✅ تم تحديث حالة الطلب');
     } catch (e) { showToast('❌ خطأ في التحديث', true); }
+}
+
+function deleteOrderConfirm(id, customerName) {
+    document.getElementById('confirmMessage').textContent = `هل أنت متأكد من حذف طلب رقم #${id} الخاص بـ "${customerName}"؟`;
+    document.getElementById('confirmActionBtn').onclick = () => deleteOrder(id);
+    document.getElementById('confirmOverlay').classList.add('open');
+    document.getElementById('confirmModal').classList.add('open');
+}
+
+async function deleteOrder(id) {
+    try {
+        await apiFetch(`/api/orders/${id}`, { method: 'DELETE' });
+        closeConfirmModal();
+        allOrders = allOrders.filter(o => o.id !== id);
+        updateOrdersNavBadge();
+        renderOrders();
+        await loadStats();
+        showToast('✅ تم حذف الطلب بنجاح');
+    } catch (e) {
+        showToast('❌ ' + (e.message || 'خطأ في حذف الطلب'), true);
+    }
 }
 
 // ============ SETTINGS (CATEGORIES) ============
@@ -898,3 +951,65 @@ async function deleteBanner(id) {
 }
 
 function escStr(s) { return (s || '').replace(/'/g, "\\'"); }
+
+// ============ BACKUP & RESTORE ============
+async function exportBackup() {
+    try {
+        showToast('⏳ جاري تجهيز النسخة الاحتياطية وتنزيلها...');
+        const res = await fetch('/api/backup', {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || 'فشل تنزيل النسخة الاحتياطية');
+        }
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.download = `babymoon_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        showToast('✅ تم تنزيل النسخة الاحتياطية بنجاح على جهازك!');
+    } catch (e) {
+        showToast('❌ ' + e.message, true);
+    }
+}
+
+async function importBackup(input) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!confirm(`هل أنت متأكد من استرجاع البيانات والمنتجات من الملف "${file.name}"؟`)) {
+        input.value = '';
+        return;
+    }
+
+    try {
+        showToast('⏳ جاري استرجاع المنتجات والبيانات...');
+        const text = await file.text();
+        const jsonData = JSON.parse(text);
+
+        const res = await fetch('/api/backup/restore', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${adminToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(jsonData)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.error || 'فشل استرجاع النسخة');
+
+        showToast(`✅ ${result.message} (تمت استعادة ${result.restored?.products || 0} منتج بنجاح)`);
+        await loadCategories();
+        await loadProducts();
+        await loadStats();
+    } catch (e) {
+        showToast('❌ ' + e.message, true);
+    } finally {
+        input.value = '';
+    }
+}

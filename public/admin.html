@@ -93,18 +93,18 @@
                         <div class="stat-label">إجمالي المنتجات</div>
                     </div>
                 </div>
-                <div class="stat-card stat-blue">
+                <div class="stat-card stat-blue" onclick="showPage('orders')" style="cursor:pointer" title="عرض كافة الطلبات">
                     <div class="stat-icon">📦</div>
                     <div class="stat-info">
                         <div class="stat-num" id="statOrders">-</div>
-                        <div class="stat-label">إجمالي الطلبات</div>
+                        <div class="stat-label">إجمالي الطلبات (اضغط للعرض)</div>
                     </div>
                 </div>
-                <div class="stat-card stat-coral">
+                <div class="stat-card stat-coral" onclick="showPage('orders')" style="cursor:pointer" title="عرض الطلبات الجديدة">
                     <div class="stat-icon">🔔</div>
                     <div class="stat-info">
                         <div class="stat-num" id="statNew">-</div>
-                        <div class="stat-label">طلبات جديدة</div>
+                        <div class="stat-label">طلبات جديدة (اضغط للعرض)</div>
                     </div>
                 </div>
                 <div class="stat-card stat-mint">
@@ -157,7 +157,11 @@
                     <button class="filter-tab" onclick="filterOrders('قيد المعالجة', this)">قيد المعالجة</button>
                     <button class="filter-tab" onclick="filterOrders('تم الشحن', this)">تم الشحن</button>
                     <button class="filter-tab" onclick="filterOrders('تم التسليم', this)">تم التسليم</button>
+                    <button class="filter-tab" onclick="filterOrders('ملغى', this)">ملغى</button>
                 </div>
+            </div>
+            <div style="margin-bottom: 1.25rem;">
+                <input type="text" class="table-search" id="orderSearch" placeholder="🔍 بحث في الطلبات (الاسم، الهاتف، العنوان، رقم الطلب)..." oninput="filterOrdersSearch(this.value)" style="max-width: 480px;" />
             </div>
             <div class="orders-list" id="ordersList"></div>
         </div>
@@ -266,8 +270,31 @@
             </div>
         </div>
 
-        <!-- ===== SETTINGS PAGE ===== -->
+        <!-- ===== SETTINGS & BACKUP PAGE ===== -->
         <div class="page" id="page-settings">
+            <!-- Backup & Cloud Safety Card -->
+            <div class="table-card" style="padding: 1.5rem; margin-bottom: 2rem; border-right: 6px solid #27ae60; background: linear-gradient(to left, #ffffff, #f0fdf4);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.25rem;">
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 800; color: #15803d; margin-bottom: 0.35rem;">
+                            💾 النسخ الاحتياطي وحماية المنتجات
+                        </h3>
+                        <p style="color: #475569; font-size: 0.92rem; max-width: 650px; line-height: 1.6;">
+                            يمكنك تنزيل نسخة احتياطية كاملة لجميع المنتجات والأقسام والبنرات وحفظها على حاسوبك بنقرة واحدة، كما يمكنك استرجاعها في أي وقت بضغطة زر لضمان بقاء منتجاتك بأمان تام دائماً.
+                        </p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="exportBackup()" style="background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);">
+                            📥 تنزيل نسخة احتياطية (JSON)
+                        </button>
+                        <button class="btn btn-ghost" onclick="document.getElementById('restoreFileInput').click()" style="border: 1px solid #cbd5e1; background: white;">
+                            📤 استرجاع نسخة احتياطية
+                        </button>
+                        <input type="file" id="restoreFileInput" accept=".json" style="display: none;" onchange="importBackup(this)" />
+                    </div>
+                </div>
+            </div>
+
             <div class="page-header">
                 <h1 class="page-title">⚙️ إدارة الأقسام</h1>
                 <button class="btn btn-primary" onclick="openCategoryModal()">➕ إضافة قسم رئيسي</button>

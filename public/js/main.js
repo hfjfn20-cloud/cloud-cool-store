@@ -680,35 +680,86 @@ function updateCartUI() {
 // ============ ORDER ============
 async function placeOrder() {
     const name = document.getElementById('custName').value.trim();
+    const address = document.getElementById('custAddress').value.trim();
     const phone = document.getElementById('custPhone').value.trim();
-    if (!name || !phone) { showToast('الاسم ورقم الهاتف مطلوبان', true); return; }
-    if (!cart.length) { showToast('السلة فارغة', true); return; }
+
+    if (!name) { showToast('⚠️ يرجى إدخال الاسم', true); return; }
+    if (!phone) { showToast('⚠️ يرجى إدخال رقم الهاتف', true); return; }
+    if (!cart.length) { showToast('⚠️ السلة فارغة', true); return; }
 
     const btn = document.querySelector('.checkout-btn');
-    btn.disabled = true; btn.textContent = '⏳ جاري الإرسال...';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ جاري إرسال الطلب...';
+    }
 
     try {
-        await apiFetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                customer_name: name,
-                customer_address: document.getElementById('custAddress').value.trim(),
-                customer_phone: phone,
-                items: cart.map(i => ({ product_id: i.id, product_name: i.name, quantity: i.qty, unit_price: i.price })),
-                total: cart.reduce((s, i) => s + i.price * i.qty, 0)
-            })
+        const orderData = {
+            customer_name: name,
+            customer_address: address,
+            customer_phone: phone,
+            items: cart.map(i => ({ product_id: i.id, product_name: i.name, quantity: i.qty, unit_price: i.price })),
+            total: cart.reduce((s, i) => s + i.price * i.qty, 0)
+        };
+
+        // 1) Save order to server database (so admin can view it in Orders page)
+        let savedOrder = null;
+        try {
+            savedOrder = await apiFetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            });
+        } catch (apiErr) {
+            console.warn('Could not save order to server, proceeding to WhatsApp:', apiErr);
+        }
+
+        // 2) Generate WhatsApp message
+        const managerPhone = '9647724650622';
+        const orderIdStr = (savedOrder && savedOrder.id) ? ` #${savedOrder.id}` : '';
+        const grandTotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+
+        let message = `*طلب جديد من متجر بيبي مون* 🌙👶${orderIdStr}\n`;
+        message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+        message += `👤 *الاسم:* ${name}\n`;
+        message += `📞 *الهاتف:* ${phone}\n`;
+        message += `📍 *العنوان:* ${address || 'لم يحدد'}\n`;
+        message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+        message += `📦 *المنتجات المطلوبة:*\n`;
+
+        cart.forEach((item, idx) => {
+            message += `${idx + 1}. *${item.name}*\n   العدد: ${item.qty} | السعر: ${(item.price * item.qty).toLocaleString('ar-IQ')} د.ع\n`;
         });
-        cart = []; saveCart(); updateCartUI();
+
+        message += `━━━━━━━━━━━━━━━━━━━━━\n`;
+        message += `💰 *المجموع الكلي:* ${grandTotal.toLocaleString('ar-IQ')} دينار عراقي`;
+
+        const waUrl = `https://wa.me/${managerPhone}?text=${encodeURIComponent(message)}`;
+
+        // 3) Clear cart & UI
+        cart = [];
+        saveCart();
+        updateCartUI();
         toggleCart();
-        showToast('🎉 تم استلام طلبك! سنتواصل معك قريباً');
+
         document.getElementById('custName').value = '';
         document.getElementById('custPhone').value = '';
         document.getElementById('custAddress').value = '';
+
+        showToast('🎉 تم حفظ طلبك! جاري تحويلك للواتساب...', false);
+
+        // 4) Redirect to WhatsApp
+        setTimeout(() => {
+            window.location.href = waUrl;
+        }, 1200);
+
     } catch (e) {
         showToast('حدث خطأ في إرسال الطلب، حاول مجدداً', true);
     } finally {
-        btn.disabled = false; btn.textContent = '🛍️ اشتري الآن';
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '💬 إرسال الطلب عبر الواتساب';
+        }
     }
 }
 
