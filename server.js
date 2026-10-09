@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { initializeDatabase, isMongo } = require('./database');
+const { initializeDatabase, isMongo, getMongoError } = require('./database');
 const { isImgbbConfigured, isCloudinaryConfigured } = require('./config/imageStorage');
 
 const app = express();
@@ -37,6 +37,8 @@ app.get('/api/status', (req, res) => {
     res.json({
         status: 'online',
         database: isMongo() ? 'MongoDB Atlas (Cloud)' : 'Local db.json (Fallback)',
+        mongoError: getMongoError(),
+        version: 'v2.2-atlas-check',
         storage: isCloudinaryConfigured()
             ? 'Cloudinary (Cloud CDN)'
             : (isImgbbConfigured() ? 'ImgBB Cloud CDN' : 'Database Direct / Base64')

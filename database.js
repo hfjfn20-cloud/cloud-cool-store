@@ -24,9 +24,14 @@ const adapter = new FileSync(path.join(__dirname, 'db.json'));
 const db = low(adapter);
 
 let isMongoConnected = false;
+let lastMongoError = null;
 
 function isMongo() {
     return isMongoConnected;
+}
+
+function getMongoError() {
+    return lastMongoError;
 }
 
 async function initializeDatabase() {
@@ -39,6 +44,7 @@ async function initializeDatabase() {
             console.log('⏳ Connecting to MongoDB Atlas...');
             await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
             isMongoConnected = true;
+            lastMongoError = null;
             console.log('✅ Connected to MongoDB Atlas successfully!');
 
             // Check if MongoDB is empty and we can auto-migrate from db.json
@@ -54,10 +60,12 @@ async function initializeDatabase() {
             console.error('⚠️ Could not connect to MongoDB Atlas:', err.message);
             console.log('🔄 Falling back to local db.json database.');
             isMongoConnected = false;
+            lastMongoError = err.message;
         }
     } else {
         console.log('ℹ️ MONGODB_URI not found in .env. Using local db.json.');
         isMongoConnected = false;
+        lastMongoError = 'MONGODB_URI not provided';
     }
 
     // Lowdb initialization (fallback)
@@ -137,6 +145,7 @@ module.exports = {
     initializeDatabase,
     nextId,
     isMongo,
+    getMongoError,
     getNextSequence,
     models: {
         Admin,
