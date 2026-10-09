@@ -30,7 +30,7 @@ function isMongo() {
 }
 
 async function initializeDatabase() {
-    const DEFAULT_MONGO_URI = 'mongodb+srv://hfjfn20_db_user:Mohammed07735@cluster0.maxgeqw.mongodb.net/cloud_cool_store?retryWrites=true&w=majority&appName=Cluster0';
+    const DEFAULT_MONGO_URI = 'mongodb+srv://admin:admin@cluster0.maxgeqw.mongodb.net/cloud_cool_store?retryWrites=true&w=majority&appName=Cluster0';
     const mongoUri = process.env.MONGODB_URI || DEFAULT_MONGO_URI;
     console.log('🔍 MONGODB_URI active:', !!mongoUri, '| NODE_ENV:', process.env.NODE_ENV);
 

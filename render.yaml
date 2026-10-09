@@ -8,7 +8,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
-        value: mongodb+srv://hfjfn20_db_user:Mohammed07735@cluster0.maxgeqw.mongodb.net/cloud_cool_store?retryWrites=true&w=majority&appName=Cluster0
+        value: mongodb+srv://admin:admin@cluster0.maxgeqw.mongodb.net/cloud_cool_store?retryWrites=true&w=majority&appName=Cluster0
       - key: JWT_SECRET
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
