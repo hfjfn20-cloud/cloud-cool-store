@@ -42,7 +42,7 @@ async function initializeDatabase() {
     if (mongoUri) {
         try {
             console.log('⏳ Connecting to MongoDB Atlas...');
-            await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
+            await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
             isMongoConnected = true;
             lastMongoError = null;
             console.log('✅ Connected to MongoDB Atlas successfully!');
@@ -61,6 +61,28 @@ async function initializeDatabase() {
             console.log('🔄 Falling back to local db.json database.');
             isMongoConnected = false;
             lastMongoError = err.message;
+
+            // Start background retry every 30 seconds
+            console.log('🔁 Starting background MongoDB retry every 30 seconds...');
+            const retryInterval = setInterval(async () => {
+                if (isMongoConnected) {
+                    clearInterval(retryInterval);
+                    return;
+                }
+                try {
+                    console.log('🔁 Retrying MongoDB Atlas connection...');
+                    if (mongoose.connection.readyState === 0) {
+                        await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
+                    }
+                    isMongoConnected = true;
+                    lastMongoError = null;
+                    console.log('✅ MongoDB Atlas reconnected successfully via retry!');
+                    clearInterval(retryInterval);
+                } catch (retryErr) {
+                    console.log('⚠️ Retry failed:', retryErr.message);
+                    lastMongoError = retryErr.message;
+                }
+            }, 30000);
         }
     } else {
         console.log('ℹ️ MONGODB_URI not found in .env. Using local db.json.');
