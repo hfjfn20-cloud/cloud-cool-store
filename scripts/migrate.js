@@ -11,9 +11,9 @@ const Order = require('../models/Order');
 const { Counter } = require('../models/Counter');
 
 async function migrate() {
-    const mongoUri = process.env.MONGODB_URI;
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
     if (!mongoUri) {
-        console.error('❌ MONGODB_URI is not set in .env');
+        console.error('❌ MONGO_URI is not set in .env');
         return false;
     }
 

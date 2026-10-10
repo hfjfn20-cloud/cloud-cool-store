@@ -5,7 +5,18 @@
 const API = '';
 
 // ============ STATE ============
-let cart = JSON.parse(localStorage.getItem('babymoon_cart') || '[]');
+window.productsMap = window.productsMap || new Map();
+let cart = [];
+try {
+    const rawCart = localStorage.getItem('babymoon_cart');
+    if (rawCart) {
+        const parsed = JSON.parse(rawCart);
+        if (Array.isArray(parsed)) cart = parsed;
+    }
+} catch (e) {
+    console.warn('Failed to parse cart from localStorage:', e);
+    cart = [];
+}
 let allCategories = [];
 let allBanners = [];
 let sliderIndex = 0;
@@ -519,21 +530,57 @@ function renderProductCard(product) {
            <span class="discount-badge">-${product.discount_percent}%</span>`
         : `<span class="product-price">${product.price.toLocaleString('ar-IQ')} د.ع</span>`;
 
+    const prodId = product.id !== undefined && product.id !== null ? product.id : (product._id || '');
+
+    // Cache product in memory map
+    if (window.productsMap && prodId) {
+        window.productsMap.set(String(prodId), product);
+    }
+
     return `
-    <div class="product-card" data-id="${product.id}" onclick="showProductDetails(${product.id})">
-      <div class="product-img-wrap">${imgTag}</div>
-      <div class="product-flags">${flags}</div>
-      <div class="product-info">
-        <div class="product-name">${product.name}</div>
-        <div class="product-category">${[product.category_label, product.subcategory_label, product.item_type_label].filter(Boolean).join(' · ')}</div>
-        <div class="product-price-wrap">${priceHtml}</div>
-        <div class="product-actions-card" onclick="event.stopPropagation()">
-          <button class="add-cart-btn" onclick="addToCart(${product.id}, '${escStr(product.name)}', ${discountedPrice}, '${product.image || ''}')">
-            🛒 أضف إلى السلة
-          </button>
+    <div class="product-card" data-id="${prodId}">
+      <div class="product-card-body" onclick="showProductDetails('${prodId}')">
+        <div class="product-img-wrap">${imgTag}</div>
+        <div class="product-flags">${flags}</div>
+        <div class="product-info">
+          <div class="product-name">${product.name}</div>
+          <div class="product-category">${[product.category_label, product.subcategory_label, product.item_type_label].filter(Boolean).join(' · ')}</div>
+          <div class="product-price-wrap">${priceHtml}</div>
         </div>
       </div>
+      <div class="product-actions-card">
+        <button type="button" class="add-cart-btn" onclick="handleAddToCartClick(event, '${prodId}')">
+          🛒 أضف إلى السلة
+        </button>
+      </div>
     </div>`;
+}
+
+function handleAddToCartClick(event, prodId) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    const product = window.productsMap ? window.productsMap.get(String(prodId)) : null;
+    if (product) {
+        const hasDiscount = product.is_offer && product.discount_percent > 0;
+        const discountedPrice = hasDiscount
+            ? Math.round(product.price * (1 - product.discount_percent / 100))
+            : product.price;
+        addToCart(prodId, product.name, discountedPrice, product.image);
+    } else {
+        // Fallback: fetch product details if missing from cache
+        apiFetch(`/api/products/${prodId}`).then(p => {
+            if (p) {
+                if (window.productsMap) window.productsMap.set(String(prodId), p);
+                const hasDiscount = p.is_offer && p.discount_percent > 0;
+                const discountedPrice = hasDiscount
+                    ? Math.round(p.price * (1 - p.discount_percent / 100))
+                    : p.price;
+                addToCart(prodId, p.name, discountedPrice, p.image);
+            }
+        }).catch(e => console.error('Error fetching product for cart:', e));
+    }
 }
 
 function escStr(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
@@ -541,13 +588,19 @@ function escStr(s) { return (s || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
 // ============ PRODUCT DETAILS ============
 async function showProductDetails(id) {
     try {
-        const product = await apiFetch(`/api/products/${id}`);
+        let product = window.productsMap ? window.productsMap.get(String(id)) : null;
+        if (!product) {
+            product = await apiFetch(`/api/products/${id}`);
+            if (product && window.productsMap) window.productsMap.set(String(id), product);
+        }
         if (!product) return;
 
         const hasDiscount = product.is_offer && product.discount_percent > 0;
         const discountedPrice = hasDiscount
             ? Math.round(product.price * (1 - product.discount_percent / 100))
             : product.price;
+
+        const prodId = product.id !== undefined && product.id !== null ? product.id : (product._id || id);
 
         document.getElementById('detailImg').src = product.image || '';
         document.getElementById('detailImg').style.display = product.image ? 'block' : 'none';
@@ -569,15 +622,18 @@ async function showProductDetails(id) {
             document.getElementById('detailPriceOriginal').style.display = 'none';
         }
         document.getElementById('detailPriceFinal').textContent = discountedPrice.toLocaleString('ar-IQ') + ' د.ع';
-        document.getElementById('detailBuyBtn').onclick = () => {
-            addToCart(product.id, product.name, discountedPrice, product.image);
+        
+        const buyBtn = document.getElementById('detailBuyBtn');
+        buyBtn.onclick = (e) => {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+            addToCart(prodId, product.name, discountedPrice, product.image);
             closeProductDetails();
         };
 
         document.getElementById('productDetailView').classList.add('open');
         document.getElementById('productDetailOverlay').classList.add('open');
         document.body.style.overflow = 'hidden';
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error('showProductDetails error:', e); }
 }
 
 function closeProductDetails() {
@@ -606,76 +662,142 @@ function initCarousels() {
 }
 
 // ============ CART ============
-function toggleCart() {
+function openCart() {
     const sidebar = document.getElementById('cartSidebar');
     const overlay = document.getElementById('cartOverlay');
-    const isOpen = sidebar.classList.contains('open');
-    sidebar.classList.toggle('open', !isOpen);
-    overlay.classList.toggle('open', !isOpen);
-    document.body.style.overflow = isOpen ? '' : 'hidden';
+    if (sidebar) sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCart() {
+    const sidebar = document.getElementById('cartSidebar');
+    const overlay = document.getElementById('cartOverlay');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+function toggleCart() {
+    const sidebar = document.getElementById('cartSidebar');
+    if (!sidebar) return;
+    if (sidebar.classList.contains('open')) {
+        closeCart();
+    } else {
+        openCart();
+    }
 }
 
 function addToCart(id, name, price, image) {
-    const existing = cart.find(i => i.id === id);
-    if (existing) { existing.qty++; }
-    else { cart.push({ id, name, price, image, qty: 1 }); }
+    if (!Array.isArray(cart)) cart = [];
+
+    const safeId = id !== undefined && id !== null ? id : Date.now();
+    const safePrice = Number(price) || 0;
+    const safeName = String(name || 'منتج');
+    const safeImage = image || '';
+
+    const existing = cart.find(i => String(i.id) === String(safeId));
+    if (existing) {
+        existing.qty = (Number(existing.qty) || 1) + 1;
+    } else {
+        cart.push({ id: safeId, name: safeName, price: safePrice, image: safeImage, qty: 1 });
+    }
+
     saveCart();
     updateCartUI();
-    showToast(`✅ تمت إضافة "${name}" إلى السلة`);
+    showToast(`✅ تمت إضافة "${safeName}" إلى السلة`);
+
+    // Animate cart button in header
+    const cartBtn = document.getElementById('cartBtn');
+    if (cartBtn) {
+        cartBtn.classList.remove('bounce-btn');
+        void cartBtn.offsetWidth; // trigger reflow
+        cartBtn.classList.add('bounce-btn');
+    }
+
+    // Open cart drawer so user sees their product in the cart!
+    openCart();
 }
 
 function removeFromCart(id) {
-    cart = cart.filter(i => i.id !== id);
-    saveCart(); updateCartUI();
+    if (!Array.isArray(cart)) cart = [];
+    cart = cart.filter(i => String(i.id) !== String(id));
+    saveCart();
+    updateCartUI();
 }
 
 function changeQty(id, delta) {
-    const item = cart.find(i => i.id === id);
+    if (!Array.isArray(cart)) cart = [];
+    const item = cart.find(i => String(i.id) === String(id));
     if (!item) return;
-    item.qty += delta;
+    item.qty = (Number(item.qty) || 1) + delta;
     if (item.qty <= 0) return removeFromCart(id);
-    saveCart(); updateCartUI();
+    saveCart();
+    updateCartUI();
 }
 
-function saveCart() { localStorage.setItem('babymoon_cart', JSON.stringify(cart)); }
+function saveCart() {
+    try {
+        localStorage.setItem('babymoon_cart', JSON.stringify(cart));
+    } catch (e) {
+        console.error('Failed to save cart to localStorage:', e);
+    }
+}
 
 function updateCartUI() {
-    const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-    const count = cart.reduce((s, i) => s + i.qty, 0);
-    document.getElementById('cartBadge').textContent = count;
+    if (!Array.isArray(cart)) cart = [];
+    const total = cart.reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.qty) || 1), 0);
+    const count = cart.reduce((s, i) => s + (Number(i.qty) || 1), 0);
+
+    const badgeEl = document.getElementById('cartBadge');
+    if (badgeEl) badgeEl.textContent = count;
 
     const itemsEl = document.getElementById('cartItems');
     const emptyEl = document.getElementById('cartEmpty');
     const footerEl = document.getElementById('cartFooter');
     const buyBarEl = document.getElementById('cartBuyBar');
-    document.getElementById('cartTotal').textContent = total.toLocaleString('ar-IQ') + ' دينار';
+    const totalEl = document.getElementById('cartTotal');
+
+    if (totalEl) totalEl.textContent = total.toLocaleString('ar-IQ') + ' دينار';
+
+    if (!itemsEl) return;
 
     if (!cart.length) {
-        itemsEl.innerHTML = ''; emptyEl.style.display = 'flex';
-        footerEl.style.display = 'none';
+        itemsEl.innerHTML = '';
+        if (emptyEl) emptyEl.style.display = 'flex';
+        if (footerEl) footerEl.style.display = 'none';
         if (buyBarEl) buyBarEl.style.display = 'none';
     } else {
-        emptyEl.style.display = 'none';
-        footerEl.style.display = 'block';
+        if (emptyEl) emptyEl.style.display = 'none';
+        if (footerEl) footerEl.style.display = 'block';
         if (buyBarEl) buyBarEl.style.display = 'block';
         itemsEl.innerHTML = cart.map(item => `
             <div class="cart-item">
                 <div class="cart-item-img">
-                    ${item.image ? `<img src="${item.image}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">` : '👕'}
+                    ${item.image ? `<img src="${item.image}" alt="${item.name || ''}" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none';this.parentElement.textContent='👕'">` : '👕'}
                 </div>
                 <div class="cart-item-info">
-                    <div class="cart-item-name">${item.name}</div>
-                    <div class="cart-item-price">${(item.price * item.qty).toLocaleString('ar-IQ')} د.ع</div>
+                    <div class="cart-item-name">${item.name || ''}</div>
+                    <div class="cart-item-price">${((Number(item.price) || 0) * (Number(item.qty) || 1)).toLocaleString('ar-IQ')} د.ع</div>
                     <div class="cart-item-qty">
-                        <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+                        <button type="button" class="qty-btn" onclick="changeQty('${item.id}', -1)">−</button>
                         <span class="qty-num">${item.qty}</span>
-                        <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+                        <button type="button" class="qty-btn" onclick="changeQty('${item.id}', 1)">+</button>
                     </div>
                 </div>
-                <button class="cart-item-remove" onclick="removeFromCart(${item.id})">🗑️</button>
+                <button type="button" class="cart-item-remove" onclick="removeFromCart('${item.id}')" title="حذف">🗑️</button>
             </div>`).join('');
     }
 }
+
+// Global exports
+window.openCart = openCart;
+window.closeCart = closeCart;
+window.toggleCart = toggleCart;
+window.addToCart = addToCart;
+window.handleAddToCartClick = handleAddToCartClick;
+window.removeFromCart = removeFromCart;
+window.changeQty = changeQty;
 
 // ============ ORDER ============
 async function placeOrder() {

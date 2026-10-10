@@ -78,7 +78,7 @@ async function startServer() {
     app.listen(PORT, '0.0.0.0', () => {
         console.log(`\n======================================================`);
         console.log(`🚀 Baby Moon Store running at http://localhost:${PORT}`);
-        console.log(`📊 Database: ${isMongo() ? '🟢 MongoDB Atlas (Cloud)' : '🟡 Local db.json (Add MONGODB_URI to .env)'}`);
+        console.log(`📊 Database: ${isMongo() ? '🟢 MongoDB Atlas (Cloud)' : '🟡 Local db.json (Add MONGO_URI to .env)'}`);
         console.log(`☁️ Images:   ${isImgbbConfigured() ? '🟢 ImgBB Cloud CDN (Active)' : '🟡 Local /uploads (Add IMGBB_API_KEY to .env)'}`);
         console.log(`======================================================\n`);
 

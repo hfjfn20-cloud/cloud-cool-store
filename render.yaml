@@ -7,8 +7,8 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
-        value: mongodb+srv://MOHAMMED07735:MOHAMMED07735@cluster0.maxgeqw.mongodb.net/cloud_cool_store?retryWrites=true&w=majority&appName=Cluster0
+      - key: MONGO_URI
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: CLOUDINARY_CLOUD_NAME

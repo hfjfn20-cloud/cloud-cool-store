@@ -1,3 +1,4 @@
+require('dotenv').config();
 const low = require('lowdb');
 const FileSync = require('lowdb/adapters/FileSync');
 const bcrypt = require('bcryptjs');
@@ -35,26 +36,21 @@ function getMongoError() {
 }
 
 async function initializeDatabase() {
-    const DEFAULT_MONGO_URI = 'mongodb+srv://MOHAMMED07735:MOHAMMED07735@cluster0.maxgeqw.mongodb.net/cloud_cool_store?retryWrites=true&w=majority&appName=Cluster0';
-    const mongoUri = process.env.MONGODB_URI || DEFAULT_MONGO_URI;
-    console.log('🔍 MONGODB_URI active:', !!mongoUri, '| NODE_ENV:', process.env.NODE_ENV);
+    const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    console.log('🔍 MONGO_URI active:', !!mongoUri, '| NODE_ENV:', process.env.NODE_ENV);
+
+    const connectOptions = {
+        serverSelectionTimeoutMS: 8000,
+        dbName: 'cloud_cool_store'
+    };
 
     if (mongoUri) {
         try {
             console.log('⏳ Connecting to MongoDB Atlas...');
-            await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
+            await mongoose.connect(mongoUri, connectOptions);
             isMongoConnected = true;
             lastMongoError = null;
             console.log('✅ Connected to MongoDB Atlas successfully!');
-
-            // Check if MongoDB is empty and we can auto-migrate from db.json
-            const adminCount = await Admin.countDocuments();
-            if (adminCount === 0) {
-                console.log('📦 Empty MongoDB detected, auto-migrating initial data from db.json...');
-                const migrate = require('./scripts/migrate');
-                await migrate();
-            }
-
             return;
         } catch (err) {
             console.error('⚠️ Could not connect to MongoDB Atlas:', err.message);
@@ -72,7 +68,7 @@ async function initializeDatabase() {
                 try {
                     console.log('🔁 Retrying MongoDB Atlas connection...');
                     if (mongoose.connection.readyState === 0) {
-                        await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 8000 });
+                        await mongoose.connect(mongoUri, connectOptions);
                     }
                     isMongoConnected = true;
                     lastMongoError = null;
@@ -85,9 +81,9 @@ async function initializeDatabase() {
             }, 30000);
         }
     } else {
-        console.log('ℹ️ MONGODB_URI not found in .env. Using local db.json.');
+        console.log('ℹ️ MONGO_URI not found in .env. Using local db.json.');
         isMongoConnected = false;
-        lastMongoError = 'MONGODB_URI not provided';
+        lastMongoError = 'MONGO_URI not provided';
     }
 
     // Lowdb initialization (fallback)
